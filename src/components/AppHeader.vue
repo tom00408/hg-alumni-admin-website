@@ -20,7 +20,7 @@
         <div class="logo-circle">
           <span class="logo-text">HG</span>
         </div>
-        <span class="header__title">Alumni Verein</span>
+        <span class="header__title">ADMIN</span>
       </div>
 
       <!-- Placeholder für zukünftige Header-Actions -->

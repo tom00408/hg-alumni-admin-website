@@ -1,0 +1,7 @@
+/* Import des Haupt-Themes */
+@import './theme.css';
+
+#app {
+  width: 100%;
+  min-height: 100vh;
+}
