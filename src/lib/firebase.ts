@@ -19,6 +19,3 @@ export const db = getFirestore(app)
 
 // Storage
 export const storage = getStorage(app)
-
-// Mock Data Flag für Development
-export const useMockData = import.meta.env.VITE_USE_MOCK_DATA === 'true'

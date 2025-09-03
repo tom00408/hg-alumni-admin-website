@@ -181,13 +181,17 @@ const galleryStore = useGalleryStore()
 const membershipStore = useMembershipStore()
 
 onMounted(async () => {
-  // Daten laden für Dashboard-Statistiken
-  await Promise.all([
-    eventsStore.fetchEvents(),
-    newsStore.fetchArticles(),
-    galleryStore.fetchImages(),
-    membershipStore.fetchApplications()
-  ])
+  // Daten laden für Dashboard-Statistiken mit Error-Handling
+  try {
+    await Promise.allSettled([
+      eventsStore.fetchEvents().catch(e => console.log('Events laden fehlgeschlagen:', e)),
+      newsStore.fetchArticles().catch(e => console.log('News laden fehlgeschlagen:', e)),
+      galleryStore.fetchImages().catch(e => console.log('Gallery laden fehlgeschlagen:', e)),
+      membershipStore.fetchApplications().catch(e => console.log('Membership laden fehlgeschlagen:', e))
+    ])
+  } catch (error) {
+    console.log('Einige Daten konnten nicht geladen werden:', error)
+  }
 })
 
 // Hilfsfunktionen für Datumsformatierung

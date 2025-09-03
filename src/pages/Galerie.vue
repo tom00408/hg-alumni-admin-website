@@ -233,7 +233,7 @@
               @change="handleFileSelect"
               style="display: none;"
             />
-            <button @click="$refs.fileInput.click()" class="btn-primary">
+            <button @click="fileInput?.click()" class="btn-primary">
               Dateien auswählen
             </button>
           </div>
@@ -405,6 +405,9 @@ const isSubmitting = ref(false)
 const imageForm = ref({
   title: ''
 })
+
+// File input ref
+const fileInput = ref<HTMLInputElement>()
 
 // Computed
 const filteredImages = computed(() => {

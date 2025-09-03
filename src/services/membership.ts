@@ -1,6 +1,12 @@
 import { 
   collection, 
+  getDocs,
+  doc,
+  updateDoc,
+  deleteDoc,
   addDoc, 
+  query,
+  orderBy,
   Timestamp 
 } from 'firebase/firestore'
 import { db } from '../lib/firebase'
@@ -126,4 +132,49 @@ Nachricht: ${application.message || 'Keine Nachricht'}
 Eingereicht am: ${formatDate(application.createdAt)}
 Status: ${application.status}
   `.trim()
+}
+
+/**
+ * Alle Mitgliedsanträge laden
+ */
+export const getAllApplications = async (): Promise<MembershipApplication[]> => {
+  try {
+    const applicationsCollection = collection(db, COLLECTION_NAME)
+    const q = query(applicationsCollection, orderBy('createdAt', 'desc'))
+    const querySnapshot = await getDocs(q)
+    
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    })) as MembershipApplication[]
+  } catch (error) {
+    console.error('Error fetching all applications:', error)
+    throw new Error('Fehler beim Laden der Mitgliedsanträge')
+  }
+}
+
+/**
+ * Status eines Mitgliedsantrags aktualisieren
+ */
+export const updateApplicationStatus = async (id: string, status: 'pending' | 'approved' | 'rejected'): Promise<void> => {
+  try {
+    const applicationDoc = doc(db, COLLECTION_NAME, id)
+    await updateDoc(applicationDoc, { status })
+  } catch (error) {
+    console.error('Error updating application status:', error)
+    throw new Error('Fehler beim Aktualisieren des Antragsstatus')
+  }
+}
+
+/**
+ * Mitgliedsantrag löschen
+ */
+export const deleteApplication = async (id: string): Promise<void> => {
+  try {
+    const applicationDoc = doc(db, COLLECTION_NAME, id)
+    await deleteDoc(applicationDoc)
+  } catch (error) {
+    console.error('Error deleting application:', error)
+    throw new Error('Fehler beim Löschen des Antrags')
+  }
 }

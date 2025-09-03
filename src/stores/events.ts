@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { Event } from '../lib/types'
-import { useMockData } from '../lib/firebase'
+
 
 export const useEventsStore = defineStore('events', () => {
   // State
@@ -38,18 +38,13 @@ export const useEventsStore = defineStore('events', () => {
     error.value = null
 
     try {
-      if (useMockData) {
-        // Mock-Daten verwenden
-        const { getMockEvents } = await import('../lib/mockData')
-        events.value = getMockEvents()
-      } else {
-        // TODO: Echte Firebase-Daten laden
-        const { getAllEvents } = await import('../services/events')
-        events.value = await getAllEvents()
-      }
+      const { getAllEvents } = await import('../services/events')
+      events.value = await getAllEvents()
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Fehler beim Laden der Termine'
       console.error('Error fetching events:', err)
+      // Fallback: leere Liste für Development
+      events.value = []
     } finally {
       loading.value = false
     }
@@ -57,21 +52,10 @@ export const useEventsStore = defineStore('events', () => {
 
   const addEvent = async (eventData: Omit<Event, 'id'>) => {
     try {
-      if (useMockData) {
-        // Mock: Einfach zur lokalen Liste hinzufügen
-        const newEvent: Event = {
-          ...eventData,
-          id: `mock-${Date.now()}`
-        }
-        events.value.push(newEvent)
-        return newEvent
-      } else {
-        // TODO: Event zu Firebase hinzufügen
-        const { createEvent } = await import('../services/events')
-        const newEvent = await createEvent(eventData)
-        events.value.push(newEvent)
-        return newEvent
-      }
+      const { createEvent } = await import('../services/events')
+      const newEvent = await createEvent(eventData)
+      events.value.push(newEvent)
+      return newEvent
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Fehler beim Erstellen des Termins'
       throw err
@@ -80,21 +64,12 @@ export const useEventsStore = defineStore('events', () => {
 
   const updateEvent = async (id: string, eventData: Partial<Event>) => {
     try {
-      if (useMockData) {
-        // Mock: Event in lokaler Liste aktualisieren
-        const index = events.value.findIndex(event => event.id === id)
-        if (index !== -1) {
-          events.value[index] = { ...events.value[index], ...eventData }
-        }
-      } else {
-        // TODO: Event in Firebase aktualisieren
-        const { updateEvent: updateFirebaseEvent } = await import('../services/events')
-        await updateFirebaseEvent(id, eventData)
-        
-        const index = events.value.findIndex(event => event.id === id)
-        if (index !== -1) {
-          events.value[index] = { ...events.value[index], ...eventData }
-        }
+      const { updateEvent: updateFirebaseEvent } = await import('../services/events')
+      await updateFirebaseEvent(id, eventData)
+      
+      const index = events.value.findIndex(event => event.id === id)
+      if (index !== -1) {
+        events.value[index] = { ...events.value[index], ...eventData }
       }
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Fehler beim Aktualisieren des Termins'
@@ -104,15 +79,9 @@ export const useEventsStore = defineStore('events', () => {
 
   const deleteEvent = async (id: string) => {
     try {
-      if (useMockData) {
-        // Mock: Event aus lokaler Liste entfernen
-        events.value = events.value.filter(event => event.id !== id)
-      } else {
-        // TODO: Event aus Firebase löschen
-        const { deleteEvent: deleteFirebaseEvent } = await import('../services/events')
-        await deleteFirebaseEvent(id)
-        events.value = events.value.filter(event => event.id !== id)
-      }
+      const { deleteEvent: deleteFirebaseEvent } = await import('../services/events')
+      await deleteFirebaseEvent(id)
+      events.value = events.value.filter(event => event.id !== id)
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Fehler beim Löschen des Termins'
       throw err

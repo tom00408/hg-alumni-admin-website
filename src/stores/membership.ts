@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { MembershipApplication } from '../lib/types'
-import { useMockData } from '../lib/firebase'
+
 
 export const useMembershipStore = defineStore('membership', () => {
   // State
@@ -34,18 +34,13 @@ export const useMembershipStore = defineStore('membership', () => {
     error.value = null
 
     try {
-      if (useMockData) {
-        // Mock-Daten verwenden
-        const { getMockMembershipApplications } = await import('../lib/mockData')
-        applications.value = getMockMembershipApplications()
-      } else {
-        // TODO: Echte Firebase-Daten laden
-        const { getAllApplications } = await import('../services/membership')
-        applications.value = await getAllApplications()
-      }
+      const { getAllApplications } = await import('../services/membership')
+      applications.value = await getAllApplications()
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Fehler beim Laden der Mitgliedsanträge'
       console.error('Error fetching applications:', err)
+      // Fallback: leere Liste für Development
+      applications.value = []
     } finally {
       loading.value = false
     }
@@ -53,21 +48,12 @@ export const useMembershipStore = defineStore('membership', () => {
 
   const updateApplicationStatus = async (id: string, status: 'pending' | 'approved' | 'rejected') => {
     try {
-      if (useMockData) {
-        // Mock: Status in lokaler Liste aktualisieren
-        const index = applications.value.findIndex(app => app.id === id)
-        if (index !== -1) {
-          applications.value[index].status = status
-        }
-      } else {
-        // TODO: Status in Firebase aktualisieren
-        const { updateApplicationStatus: updateFirebaseStatus } = await import('../services/membership')
-        await updateFirebaseStatus(id, status)
-        
-        const index = applications.value.findIndex(app => app.id === id)
-        if (index !== -1) {
-          applications.value[index].status = status
-        }
+      const { updateApplicationStatus: updateFirebaseStatus } = await import('../services/membership')
+      await updateFirebaseStatus(id, status)
+      
+      const index = applications.value.findIndex(app => app.id === id)
+      if (index !== -1) {
+        applications.value[index].status = status
       }
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Fehler beim Aktualisieren des Antrags'
@@ -77,15 +63,9 @@ export const useMembershipStore = defineStore('membership', () => {
 
   const deleteApplication = async (id: string) => {
     try {
-      if (useMockData) {
-        // Mock: Antrag aus lokaler Liste entfernen
-        applications.value = applications.value.filter(app => app.id !== id)
-      } else {
-        // TODO: Antrag aus Firebase löschen
-        const { deleteApplication: deleteFirebaseApplication } = await import('../services/membership')
-        await deleteFirebaseApplication(id)
-        applications.value = applications.value.filter(app => app.id !== id)
-      }
+      const { deleteApplication: deleteFirebaseApplication } = await import('../services/membership')
+      await deleteFirebaseApplication(id)
+      applications.value = applications.value.filter(app => app.id !== id)
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Fehler beim Löschen des Antrags'
       throw err

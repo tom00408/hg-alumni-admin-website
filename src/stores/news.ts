@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { NewsArticle } from '../lib/types'
-import { useMockData } from '../lib/firebase'
+
 
 export const useNewsStore = defineStore('news', () => {
   // State
@@ -58,38 +58,22 @@ export const useNewsStore = defineStore('news', () => {
     error.value = null
 
     try {
-      if (useMockData) {
-        // Mock-Daten verwenden
-        const { getMockNews } = await import('../lib/mockData')
-        const mockNews = getMockNews()
-        
-        if (reset || page === 1) {
-          articles.value = mockNews
-          currentPage.value = 1
-        } else {
-          // Simuliere Paginierung
-          articles.value.push(...mockNews)
-        }
-        
-        // Mock: Keine weitere Paginierung
-        hasMore.value = false
+      const { getArticles } = await import('../services/news')
+      const { articles: newArticles, hasMore: moreAvailable } = await getArticles(page, pageSize)
+      
+      if (reset || page === 1) {
+        articles.value = newArticles
       } else {
-        // TODO: Echte Firebase-Daten laden mit Paginierung
-        const { getArticles } = await import('../services/news')
-        const { articles: newArticles, hasMore: moreAvailable } = await getArticles(page, pageSize)
-        
-        if (reset || page === 1) {
-          articles.value = newArticles
-        } else {
-          articles.value.push(...newArticles)
-        }
-        
-        hasMore.value = moreAvailable
-        currentPage.value = page
+        articles.value.push(...newArticles)
       }
+      
+      hasMore.value = moreAvailable
+      currentPage.value = page
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Fehler beim Laden der Nachrichten'
       console.error('Error fetching articles:', err)
+      // Fallback: leere Liste für Development
+      articles.value = []
     } finally {
       loading.value = false
     }
@@ -104,21 +88,10 @@ export const useNewsStore = defineStore('news', () => {
 
   const addArticle = async (articleData: Omit<NewsArticle, 'id'>) => {
     try {
-      if (useMockData) {
-        // Mock: Einfach zur lokalen Liste hinzufügen
-        const newArticle: NewsArticle = {
-          ...articleData,
-          id: `mock-${Date.now()}`
-        }
-        articles.value.unshift(newArticle) // Am Anfang hinzufügen
-        return newArticle
-      } else {
-        // TODO: Artikel zu Firebase hinzufügen
-        const { createArticle } = await import('../services/news')
-        const newArticle = await createArticle(articleData)
-        articles.value.unshift(newArticle)
-        return newArticle
-      }
+      const { createArticle } = await import('../services/news')
+      const newArticle = await createArticle(articleData)
+      articles.value.unshift(newArticle)
+      return newArticle
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Fehler beim Erstellen des Artikels'
       throw err
@@ -127,21 +100,12 @@ export const useNewsStore = defineStore('news', () => {
 
   const updateArticle = async (id: string, articleData: Partial<NewsArticle>) => {
     try {
-      if (useMockData) {
-        // Mock: Artikel in lokaler Liste aktualisieren
-        const index = articles.value.findIndex(article => article.id === id)
-        if (index !== -1) {
-          articles.value[index] = { ...articles.value[index], ...articleData }
-        }
-      } else {
-        // TODO: Artikel in Firebase aktualisieren
-        const { updateArticle: updateFirebaseArticle } = await import('../services/news')
-        await updateFirebaseArticle(id, articleData)
-        
-        const index = articles.value.findIndex(article => article.id === id)
-        if (index !== -1) {
-          articles.value[index] = { ...articles.value[index], ...articleData }
-        }
+      const { updateArticle: updateFirebaseArticle } = await import('../services/news')
+      await updateFirebaseArticle(id, articleData)
+      
+      const index = articles.value.findIndex(article => article.id === id)
+      if (index !== -1) {
+        articles.value[index] = { ...articles.value[index], ...articleData }
       }
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Fehler beim Aktualisieren des Artikels'
@@ -151,15 +115,9 @@ export const useNewsStore = defineStore('news', () => {
 
   const deleteArticle = async (id: string) => {
     try {
-      if (useMockData) {
-        // Mock: Artikel aus lokaler Liste entfernen
-        articles.value = articles.value.filter(article => article.id !== id)
-      } else {
-        // TODO: Artikel aus Firebase löschen
-        const { deleteArticle: deleteFirebaseArticle } = await import('../services/news')
-        await deleteFirebaseArticle(id)
-        articles.value = articles.value.filter(article => article.id !== id)
-      }
+      const { deleteArticle: deleteFirebaseArticle } = await import('../services/news')
+      await deleteFirebaseArticle(id)
+      articles.value = articles.value.filter(article => article.id !== id)
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Fehler beim Löschen des Artikels'
       throw err

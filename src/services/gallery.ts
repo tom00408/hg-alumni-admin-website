@@ -99,6 +99,27 @@ export const getImageById = async (id: string): Promise<GalleryImage | null> => 
 }
 
 /**
+ * Bild-Metadaten erstellen (ohne Upload)
+ */
+export const createImage = async (imageData: Omit<GalleryImage, 'id'>): Promise<GalleryImage> => {
+  try {
+    const imagesCollection = collection(db, COLLECTION_NAME)
+    const docRef = await addDoc(imagesCollection, {
+      ...imageData,
+      createdAt: imageData.createdAt || Timestamp.now()
+    })
+    
+    return {
+      id: docRef.id,
+      ...imageData
+    } as GalleryImage
+  } catch (error) {
+    console.error('Error creating image:', error)
+    throw new Error('Fehler beim Erstellen des Bildes')
+  }
+}
+
+/**
  * Bild hochladen
  */
 export const uploadImage = async (file: File, title?: string): Promise<GalleryImage> => {

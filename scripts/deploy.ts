@@ -13,10 +13,10 @@ const __dirname = path.dirname(__filename);
 const sftp = new Client();
 
 const config = {
-  host: process.env.PREVIEW_SFTP_HOST,
+  host: process.env.SFTP_HOST,
   port: 22,
-  username: process.env.PREVIEW_SFTP_USERNAME,
-  password: process.env.PREVIEW_SFTP_KEY, 
+  username: process.env.SFTP_USERNAME,
+  password: process.env.SFTP_KEY, 
 };
 
 const localDir = path.join(__dirname, '../dist');
