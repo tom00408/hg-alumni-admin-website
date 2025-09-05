@@ -72,3 +72,24 @@ export interface ValidationError {
   field: string
   message: string
 }
+
+// Authentication Types
+export interface User {
+  uid: string
+  email: string
+  isAdmin: boolean
+  displayName?: string
+  photoURL?: string
+}
+
+export interface AuthState {
+  user: User | null
+  isAuthenticated: boolean
+  isLoading: boolean
+  error: string | null
+}
+
+export interface LoginCredentials {
+  email: string
+  password: string
+}

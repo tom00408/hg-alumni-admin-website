@@ -69,16 +69,48 @@
               <span class="year">{{ event.date.toDate().getFullYear() }}</span>
             </div>
             <div class="event-actions">
-              <button @click="editEvent(event)" class="action-btn" title="Bearbeiten">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-                </svg>
-              </button>
-              <button @click="confirmDelete(event)" class="action-btn delete" title="Löschen">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916C15.75 3.42 15.23 3 14.625 3h-3.25c-.604 0-1.125.42-1.125.938v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-                </svg>
-              </button>
+              <!-- Desktop: Separate Buttons -->
+              <div class="action-buttons">
+                <button @click="editEvent(event)" class="action-btn edit-btn" title="Event bearbeiten">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                  </svg>
+                  <span class="btn-text">Bearbeiten</span>
+                </button>
+                <button @click="confirmDelete(event)" class="action-btn delete-btn" title="Event löschen">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916C15.75 3.42 15.23 3 14.625 3h-3.25c-.604 0-1.125.42-1.125.938v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                  </svg>
+                  <span class="btn-text">Löschen</span>
+                </button>
+              </div>
+
+              <!-- Mobile: Dropdown Menu -->
+              <div class="mobile-dropdown" :class="{ 'active': activeDropdown === event.id }">
+                <button 
+                  @click="toggleDropdown(event.id!)" 
+                  class="dropdown-trigger"
+                  title="Aktionen"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
+                  </svg>
+                </button>
+                <div class="dropdown-menu">
+                  <button @click="editEvent(event); closeDropdown()" class="dropdown-item edit-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                    </svg>
+                    Bearbeiten
+                  </button>
+                  <button @click="confirmDelete(event); closeDropdown()" class="dropdown-item delete-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916C15.75 3.42 15.23 3 14.625 3h-3.25c-.604 0-1.125.42-1.125.938v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                    </svg>
+                    Löschen
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -258,6 +290,7 @@ const eventForm = ref({
 
 const editingEvent = ref<Event | null>(null)
 const eventToDelete = ref<Event | null>(null)
+const activeDropdown = ref<string | null>(null)
 
 // Computed
 const filteredEvents = computed(() => {
@@ -392,8 +425,29 @@ const formatTime = (date: Date) => {
   return date.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })
 }
 
+// Dropdown-Funktionen
+const toggleDropdown = (eventId: string) => {
+  if (activeDropdown.value === eventId) {
+    activeDropdown.value = null
+  } else {
+    activeDropdown.value = eventId
+  }
+}
+
+const closeDropdown = () => {
+  activeDropdown.value = null
+}
+
 onMounted(() => {
   eventsStore.fetchEvents()
+  
+  // Dropdown schließen bei Klick außerhalb
+  document.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement
+    if (!target.closest('.mobile-dropdown')) {
+      activeDropdown.value = null
+    }
+  })
 })
 </script>
 
@@ -596,9 +650,102 @@ onMounted(() => {
 .event-actions {
   display: flex;
   gap: var(--spacing-sm);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.event-card:hover .event-actions {
+  opacity: 1;
 }
 
 .action-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  min-height: 32px;
+}
+
+.action-btn svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.btn-text {
+  display: none;
+}
+
+/* Edit Button */
+.edit-btn {
+  background: var(--color-blue-50);
+  color: var(--color-blue-600);
+  border: 1px solid var(--color-blue-200);
+}
+
+.edit-btn:hover {
+  background: var(--color-blue-100);
+  color: var(--color-blue-700);
+  border-color: var(--color-blue-300);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.15);
+}
+
+.edit-btn:active {
+  transform: translateY(0);
+}
+
+/* Delete Button */
+.delete-btn {
+  background: var(--color-red-50);
+  color: var(--color-red-600);
+  border: 1px solid var(--color-red-200);
+}
+
+.delete-btn:hover {
+  background: var(--color-red-500);
+  color: var(--color-white);
+  border-color: var(--color-red-500);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(239, 68, 68, 0.25);
+}
+
+.delete-btn:active {
+  transform: translateY(0);
+}
+
+/* Desktop: Text anzeigen */
+@media (min-width: 768px) {
+  .btn-text {
+    display: inline;
+  }
+  
+  .action-btn {
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+  
+  .event-actions {
+    opacity: 0.7;
+  }
+  
+  .event-card:hover .event-actions {
+    opacity: 1;
+  }
+}
+
+/* Mobile Dropdown Styles */
+.mobile-dropdown {
+  position: relative;
+  display: none;
+}
+
+.dropdown-trigger {
   width: 36px;
   height: 36px;
   border: none;
@@ -612,19 +759,118 @@ onMounted(() => {
   transition: all var(--transition-fast);
 }
 
-.action-btn:hover {
+.dropdown-trigger:hover {
   background: var(--color-gray-200);
   color: var(--color-gray-800);
 }
 
-.action-btn.delete:hover {
-  background: var(--color-error);
-  color: var(--color-white);
+.dropdown-trigger svg {
+  width: 20px;
+  height: 20px;
 }
 
-.action-btn svg {
-  width: 18px;
-  height: 18px;
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: var(--color-white);
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  z-index: 50;
+  min-width: 140px;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(-10px);
+  pointer-events: none;
+  transition: all var(--transition-fast);
+}
+
+.mobile-dropdown.active .dropdown-menu {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: all;
+}
+
+.dropdown-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.dropdown-item svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.dropdown-item.edit-item {
+  color: var(--color-blue-600);
+}
+
+.dropdown-item.edit-item:hover {
+  background: var(--color-blue-50);
+  color: var(--color-blue-700);
+}
+
+.dropdown-item.delete-item {
+  color: var(--color-red-600);
+}
+
+.dropdown-item.delete-item:hover {
+  background: var(--color-red-50);
+  color: var(--color-red-700);
+}
+
+/* Responsive Behavior */
+@media (min-width: 768px) {
+  .action-buttons {
+    display: flex;
+    gap: var(--spacing-sm);
+  }
+  
+  .mobile-dropdown {
+    display: none;
+  }
+  
+  .btn-text {
+    display: inline;
+  }
+  
+  .action-btn {
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+  
+  .event-actions {
+    opacity: 0.7;
+  }
+  
+  .event-card:hover .event-actions {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 767px) {
+  .action-buttons {
+    display: none;
+  }
+  
+  .mobile-dropdown {
+    display: block;
+  }
+  
+  .event-actions {
+    opacity: 1;
+  }
 }
 
 .event-content {

@@ -37,6 +37,32 @@
       </ul>
     </nav>
 
+    <!-- User Info und Logout (Desktop) -->
+    <div v-if="authStore.isAuthenticated" class="sidebar__user">
+      <div class="user-info">
+        <div class="user-avatar">
+          <span class="user-initial">{{ userInitial }}</span>
+        </div>
+        <div class="user-details">
+          <p class="user-name">{{ authStore.userName }}</p>
+          <p class="user-email">{{ authStore.userEmail }}</p>
+        </div>
+      </div>
+      <button 
+        class="logout-button"
+        @click="handleLogout"
+        :disabled="authStore.isLoading"
+        title="Abmelden"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16,17 21,12 16,7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+        <span>Abmelden</span>
+      </button>
+    </div>
+
     <!-- Footer -->
     <div class="sidebar__footer">
       <p class="footer-text">Admin Board</p>
@@ -93,6 +119,31 @@
         </ul>
       </nav>
       
+      <!-- Mobile Logout -->
+      <div v-if="authStore.isAuthenticated" class="mobile-user-section">
+        <div class="mobile-user-info">
+          <div class="mobile-user-avatar">
+            <span class="user-initial">{{ userInitial }}</span>
+          </div>
+          <div class="mobile-user-details">
+            <p class="mobile-user-name">{{ authStore.userName }}</p>
+            <p class="mobile-user-email">{{ authStore.userEmail }}</p>
+          </div>
+        </div>
+        <button 
+          class="mobile-logout-button"
+          @click="handleLogout"
+          :disabled="authStore.isLoading"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16,17 21,12 16,7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+          <span>Abmelden</span>
+        </button>
+      </div>
+      
       <div class="mobile-nav-footer">
         <p>Admin Board • {{ version}}</p>
       </div>
@@ -101,6 +152,9 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useAuthStore } from '../stores/auth'
+
 interface Props {
   isOpen?: boolean
 }
@@ -113,7 +167,22 @@ defineEmits<{
   close: []
 }>()
 
+const authStore = useAuthStore()
 const version = import.meta.env.VITE_VERSION
+
+// User Initial für Avatar
+const userInitial = computed(() => {
+  return authStore.userName.charAt(0).toUpperCase()
+})
+
+const handleLogout = async (): Promise<void> => {
+  try {
+    await authStore.signOut()
+    // Nach Abmeldung wird automatisch die Login-Seite angezeigt (durch App.vue)
+  } catch (error) {
+    console.error('Logout fehlgeschlagen:', error)
+  }
+}
 
 
 const navigationItems = [
@@ -288,6 +357,89 @@ const navigationItems = [
   font-size: var(--font-size-base);
 }
 
+.sidebar__user {
+  padding: var(--spacing-lg);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 0;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.user-initial {
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-base);
+  color: var(--color-white);
+}
+
+.user-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.user-name {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-white);
+  margin: 0;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-email {
+  font-size: var(--font-size-xs);
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.logout-button {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.logout-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: var(--color-white);
+}
+
+.logout-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .sidebar__footer {
   padding: var(--spacing-lg);
   border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -453,6 +605,82 @@ const navigationItems = [
   padding: var(--spacing-lg);
   border-top: 1px solid var(--color-gray-200);
   text-align: center;
+}
+
+.mobile-user-section {
+  padding: var(--spacing-lg);
+  border-top: 1px solid var(--color-gray-200);
+}
+
+.mobile-user-info {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.mobile-user-avatar {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.mobile-user-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.mobile-user-name {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text);
+  margin: 0;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mobile-user-email {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  margin: 0;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mobile-logout-button {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--color-red-200);
+  background: var(--color-red-50);
+  color: var(--color-red-600);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.mobile-logout-button:hover {
+  background: var(--color-red-100);
+  border-color: var(--color-red-300);
+  color: var(--color-red-700);
+}
+
+.mobile-logout-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .mobile-nav-footer p {

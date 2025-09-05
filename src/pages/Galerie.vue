@@ -244,8 +244,17 @@
               <div v-for="(file, index) in uploadQueue" :key="index" class="queue-item">
                 <img :src="file.preview" :alt="file.name" class="queue-thumbnail" />
                 <div class="queue-info">
-                  <p class="queue-name">{{ file.name }}</p>
-                  <p class="queue-size">{{ formatFileSize(file.size) }}</p>
+                  <div class="queue-name-input">
+                    <label :for="`title-${index}`" class="queue-label">Titel:</label>
+                    <input 
+                      :id="`title-${index}`"
+                      v-model="uploadQueue[index].title"
+                      type="text" 
+                      class="queue-title-input"
+                      placeholder="Bildtitel..."
+                    />
+                  </div>
+                  <p class="queue-meta">{{ file.name }} • {{ formatFileSize(file.size) }}</p>
                 </div>
                 <button @click="removeFromQueue(index)" class="queue-remove">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -259,12 +268,28 @@
           <div v-if="uploadProgress.length > 0" class="upload-progress">
             <h4>Upload-Fortschritt</h4>
             <div class="progress-list">
-              <div v-for="progress in uploadProgress" :key="progress.name" class="progress-item">
-                <span class="progress-name">{{ progress.name }}</span>
-                <div class="progress-bar">
-                  <div class="progress-fill" :style="{ width: progress.percent + '%' }"></div>
+              <div v-for="progress in uploadProgress" :key="progress.name" class="progress-item" :class="progress.status">
+                <div class="progress-info">
+                  <span class="progress-name">{{ progress.name }}</span>
+                  <div class="progress-status">
+                    <svg v-if="progress.status === 'uploading'" class="progress-icon uploading" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
+                    </svg>
+                    <svg v-else-if="progress.status === 'completed'" class="progress-icon completed" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                    </svg>
+                    <svg v-else-if="progress.status === 'error'" class="progress-icon error" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+                    </svg>
+                    <span class="progress-percent">{{ progress.percent }}%</span>
+                  </div>
                 </div>
-                <span class="progress-percent">{{ progress.percent }}%</span>
+                <div v-if="progress.status !== 'error'" class="progress-bar">
+                  <div class="progress-fill" :style="{ width: progress.percent + '%' }" :class="progress.status"></div>
+                </div>
+                <div v-if="progress.error" class="progress-error">
+                  {{ progress.error }}
+                </div>
               </div>
             </div>
           </div>
@@ -391,8 +416,8 @@ const showImageModal = ref(false)
 const showDeleteModal = ref(false)
 
 // Upload state
-const uploadQueue = ref<Array<{ file: File; name: string; size: number; preview: string }>>([])
-const uploadProgress = ref<Array<{ name: string; percent: number }>>([])
+const uploadQueue = ref<Array<{ file: File; name: string; size: number; preview: string; title: string }>>([])
+const uploadProgress = ref<Array<{ name: string; percent: number; status: 'pending' | 'uploading' | 'completed' | 'error'; error?: string }>>([])
 const isUploading = ref(false)
 const isDragOver = ref(false)
 
@@ -469,20 +494,81 @@ const handleDrop = (event: DragEvent) => {
   }
 }
 
-const addFilesToQueue = (files: File[]) => {
-  files.forEach(file => {
+const addFilesToQueue = async (files: File[]) => {
+  for (const file of files) {
     if (file.type.startsWith('image/') && file.size <= 10 * 1024 * 1024) { // 10MB limit
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        uploadQueue.value.push({
-          file,
-          name: file.name,
-          size: file.size,
-          preview: e.target?.result as string
-        })
+      try {
+        // Komprimiere das Bild wenn es zu groß ist
+        const processedFile = await processImageFile(file)
+        const reader = new FileReader()
+        
+        reader.onload = (e) => {
+          const defaultTitle = file.name.replace(/\.[^/.]+$/, '') // Dateiname ohne Extension
+          uploadQueue.value.push({
+            file: processedFile,
+            name: processedFile.name,
+            size: processedFile.size,
+            preview: e.target?.result as string,
+            title: defaultTitle
+          })
+        }
+        reader.readAsDataURL(processedFile)
+      } catch (error) {
+        console.error('Fehler beim Verarbeiten der Datei:', file.name, error)
       }
-      reader.readAsDataURL(file)
     }
+  }
+}
+
+// Bildverarbeitung und Komprimierung
+const processImageFile = async (file: File): Promise<File> => {
+  return new Promise((resolve, reject) => {
+    const maxSize = 800 // Maximale Breite/Höhe
+    const quality = 0.8 // JPEG Qualität
+    const maxFileSize = 1024 * 1024 // 1MB
+    
+    // Wenn die Datei bereits klein genug ist, direkt zurückgeben
+    if (file.size <= maxFileSize) {
+      resolve(file)
+      return
+    }
+    
+    const canvas = document.createElement('canvas')
+    const ctx = canvas.getContext('2d')
+    const img = new Image()
+    
+    img.onload = () => {
+      // Berechne neue Dimensionen
+      let { width, height } = img
+      
+      if (width > maxSize || height > maxSize) {
+        const ratio = Math.min(maxSize / width, maxSize / height)
+        width = Math.round(width * ratio)
+        height = Math.round(height * ratio)
+      }
+      
+      canvas.width = width
+      canvas.height = height
+      
+      // Zeichne das Bild
+      ctx?.drawImage(img, 0, 0, width, height)
+      
+      // Konvertiere zu Blob
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const compressedFile = new File([blob], file.name, {
+            type: 'image/jpeg',
+            lastModified: Date.now()
+          })
+          resolve(compressedFile)
+        } else {
+          reject(new Error('Komprimierung fehlgeschlagen'))
+        }
+      }, 'image/jpeg', quality)
+    }
+    
+    img.onerror = () => reject(new Error('Fehler beim Laden des Bildes'))
+    img.src = URL.createObjectURL(file)
   })
 }
 
@@ -496,41 +582,59 @@ const startUpload = async () => {
   isUploading.value = true
   uploadProgress.value = uploadQueue.value.map(item => ({
     name: item.name,
-    percent: 0
+    percent: 0,
+    status: 'pending' as const
   }))
 
   try {
     for (let i = 0; i < uploadQueue.value.length; i++) {
       const item = uploadQueue.value[i]
-      
-      // Simuliere Upload-Progress (in echter App würde hier Firebase Storage verwendet)
       const progressItem = uploadProgress.value[i]
       
-      // Mock upload mit Progress
-      for (let progress = 0; progress <= 100; progress += 10) {
-        progressItem.percent = progress
-        await new Promise(resolve => setTimeout(resolve, 100))
+      try {
+        progressItem.status = 'uploading'
+        progressItem.percent = 10
+        
+        // Echtes Firebase Upload über den Gallery Store
+        await galleryStore.uploadImage(item.file, item.title)
+        
+        progressItem.percent = 100
+        progressItem.status = 'completed'
+      } catch (error) {
+        console.error(`Upload fehlgeschlagen für ${item.name}:`, error)
+        progressItem.status = 'error'
+        progressItem.error = error instanceof Error ? error.message : 'Unbekannter Fehler'
       }
-
-      // Mock: Erstelle Image-URL (in echter App würde die URL von Firebase Storage kommen)
-      const imageUrl = item.preview // Verwende Preview als Mock-URL
-      
-      const imageData: Omit<GalleryImage, 'id'> = {
-        imageUrl,
-        thumbnailUrl: imageUrl, // Mock: Verwende gleiche URL für Thumbnail
-        title: item.name.replace(/\.[^/.]+$/, ''), // Dateiname ohne Extension als Titel
-        createdAt: Timestamp.now()
-      }
-
-      await galleryStore.addImage(imageData)
     }
 
-    // Upload erfolgreich abgeschlossen
-    uploadQueue.value = []
-    uploadProgress.value = []
-    closeUploadModal()
+    // Prüfe ob alle erfolgreich waren
+    const allCompleted = uploadProgress.value.every(p => p.status === 'completed')
+    const hasErrors = uploadProgress.value.some(p => p.status === 'error')
+    
+    if (allCompleted) {
+      // Alle erfolgreich - Modal schließen
+      setTimeout(() => {
+        uploadQueue.value = []
+        uploadProgress.value = []
+        closeUploadModal()
+      }, 1000)
+    } else if (hasErrors) {
+      // Einige Fehler - Benutzer über Ergebnisse informieren
+      const errorCount = uploadProgress.value.filter(p => p.status === 'error').length
+      const successCount = uploadProgress.value.filter(p => p.status === 'completed').length
+      
+      console.log(`Upload abgeschlossen: ${successCount} erfolgreich, ${errorCount} Fehler`)
+      
+      // Nach 3 Sekunden nur die erfolgreichen aus der Queue entfernen
+      setTimeout(() => {
+        uploadQueue.value = uploadQueue.value.filter((_, index) => 
+          uploadProgress.value[index].status === 'error'
+        )
+        uploadProgress.value = uploadProgress.value.filter(p => p.status === 'error')
+      }, 3000)
+    }
   } catch (error) {
-    console.error('Upload fehlgeschlagen:', error)
+    console.error('Upload-Prozess fehlgeschlagen:', error)
   } finally {
     isUploading.value = false
   }
@@ -1183,15 +1287,38 @@ onMounted(() => {
   flex: 1;
 }
 
-.queue-name {
-  font-weight: var(--font-weight-medium);
-  margin: 0 0 var(--spacing-xs) 0;
+.queue-name-input {
+  margin-bottom: var(--spacing-sm);
 }
 
-.queue-size {
-  color: var(--color-gray-500);
+.queue-label {
+  display: block;
   font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-secondary);
+  margin-bottom: var(--spacing-xs);
+}
+
+.queue-title-input {
+  width: 100%;
+  padding: var(--spacing-sm);
+  border: 1px solid var(--color-gray-300);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  transition: border-color var(--transition-fast);
+}
+
+.queue-title-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(83, 98, 254, 0.1);
+}
+
+.queue-meta {
+  color: var(--color-gray-500);
+  font-size: var(--font-size-xs);
   margin: 0;
+  font-family: monospace;
 }
 
 .queue-remove {
@@ -1229,20 +1356,71 @@ onMounted(() => {
 }
 
 .progress-item {
+  margin-bottom: var(--spacing-lg);
+  padding: var(--spacing-md);
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+}
+
+.progress-item.uploading {
+  border-color: var(--color-primary);
+  background: rgba(83, 98, 254, 0.02);
+}
+
+.progress-item.completed {
+  border-color: var(--color-green-400);
+  background: rgba(34, 197, 94, 0.02);
+}
+
+.progress-item.error {
+  border-color: var(--color-red-400);
+  background: rgba(239, 68, 68, 0.02);
+}
+
+.progress-info {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: var(--spacing-md);
-  margin-bottom: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
 }
 
 .progress-name {
-  min-width: 150px;
   font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.progress-status {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.progress-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.progress-icon.uploading {
+  color: var(--color-primary);
+  animation: pulse 2s infinite;
+}
+
+.progress-icon.completed {
+  color: var(--color-green-500);
+}
+
+.progress-icon.error {
+  color: var(--color-red-500);
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 
 .progress-bar {
-  flex: 1;
-  height: 8px;
+  height: 6px;
   background: var(--color-gray-200);
   border-radius: var(--radius-sm);
   overflow: hidden;
@@ -1250,14 +1428,36 @@ onMounted(() => {
 
 .progress-fill {
   height: 100%;
-  background: var(--color-primary);
   transition: width var(--transition-fast);
+  border-radius: var(--radius-sm);
+}
+
+.progress-fill.pending {
+  background: var(--color-gray-400);
+}
+
+.progress-fill.uploading {
+  background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
+}
+
+.progress-fill.completed {
+  background: var(--color-green-500);
 }
 
 .progress-percent {
-  min-width: 40px;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-gray-600);
+}
+
+.progress-error {
+  margin-top: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  background: var(--color-red-50);
+  color: var(--color-red-700);
+  border-radius: var(--radius-sm);
   font-size: var(--font-size-sm);
-  text-align: right;
+  border: 1px solid var(--color-red-200);
 }
 
 /* Image Edit Modal */

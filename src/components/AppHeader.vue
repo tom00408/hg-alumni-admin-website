@@ -23,15 +23,33 @@
         <span class="header__title">ADMIN</span>
       </div>
 
-      <!-- Placeholder für zukünftige Header-Actions -->
+      <!-- User Actions -->
       <div class="header__actions">
-        <!-- Hier könnten später Benutzer-Menü, Suche etc. hin -->
+        <div v-if="authStore.isAuthenticated" class="user-menu">
+          <div class="user-info">
+            <span class="user-name">{{ authStore.userName }}</span>
+          </div>
+          <button 
+            class="logout-button"
+            @click="handleLogout"
+            :disabled="authStore.isLoading"
+            title="Abmelden"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+              <polyline points="16,17 21,12 16,7"/>
+              <line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
   </header>
 </template>
 
 <script setup lang="ts">
+import { useAuthStore } from '../stores/auth'
+
 interface Props {
   sidebarOpen?: boolean
 }
@@ -43,6 +61,17 @@ withDefaults(defineProps<Props>(), {
 defineEmits<{
   'toggle-sidebar': []
 }>()
+
+const authStore = useAuthStore()
+
+const handleLogout = async (): Promise<void> => {
+  try {
+    await authStore.signOut()
+    // Nach Abmeldung wird automatisch die Login-Seite angezeigt (durch App.vue)
+  } catch (error) {
+    console.error('Logout fehlgeschlagen:', error)
+  }
+}
 </script>
 
 <style scoped>
@@ -138,9 +167,66 @@ defineEmits<{
 }
 
 .header__actions {
-  width: 44px; /* Gleiche Breite wie Menu-Button für Balance */
+  min-width: 44px;
   display: flex;
   justify-content: flex-end;
+  align-items: center;
+}
+
+.user-menu {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.user-info {
+  display: none;
+}
+
+.user-name {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-secondary);
+}
+
+.logout-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  transition: all var(--transition-fast);
+}
+
+.logout-button:hover {
+  background-color: var(--color-red-50);
+  color: var(--color-red-600);
+}
+
+.logout-button:focus-visible {
+  outline: 2px solid var(--color-red-500);
+  outline-offset: 2px;
+}
+
+.logout-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Desktop: Mehr Platz für User Info */
+@media (min-width: 480px) {
+  .user-info {
+    display: block;
+  }
+  
+  .header__actions {
+    min-width: auto;
+  }
 }
 
 /* Desktop: Header verstecken */

@@ -131,10 +131,8 @@
       <div class="modal large" @click.stop>
         <div class="modal-header">
           <h2>{{ showEditModal ? 'Artikel bearbeiten' : 'Neuen Artikel erstellen' }}</h2>
-          <button @click="closeModal" class="close-btn">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-            </svg>
+          <button @click="closeModal" class="close-btn modern-close-btn">
+            <span class="close-icon">×</span>
           </button>
         </div>
 
@@ -147,21 +145,34 @@
               type="text" 
               required
               placeholder="z.B. Alumni-Treffen 2024 war ein voller Erfolg"
-              @input="generateSlug"
             />
           </div>
 
           <div class="form-group">
             <label for="slug">URL-Slug *</label>
-            <input 
-              id="slug"
-              v-model="articleForm.slug" 
-              type="text" 
-              required
-              placeholder="alumni-treffen-2024-erfolg"
-              pattern="[a-z0-9-]+"
-              title="Nur Kleinbuchstaben, Zahlen und Bindestriche erlaubt"
-            />
+            <div class="slug-input-group">
+              <input 
+                id="slug"
+                v-model="articleForm.slug" 
+                type="text" 
+                required
+                placeholder="alumni-treffen-2024-erfolg"
+                pattern="[a-z0-9\\-]+"
+                title="Nur Kleinbuchstaben, Zahlen und Bindestriche erlaubt"
+              />
+              <button 
+                type="button" 
+                @click="articleForm.slug = generateSlug(articleForm.title)"
+                class="slug-generate-btn modern-btn"
+                title="Slug aus Titel generieren"
+                :disabled="!articleForm.title"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="btn-icon">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                </svg>
+                <span class="btn-text">Erneuern</span>
+              </button>
+            </div>
             <small>Wird aus dem Titel automatisch generiert. Nur Kleinbuchstaben, Zahlen und Bindestriche.</small>
           </div>
 
@@ -176,12 +187,14 @@
               />
             </div>
             <div class="form-group">
-              <label for="coverUrl">Cover-Bild URL</label>
-              <input 
-                id="coverUrl"
-                v-model="articleForm.coverUrl" 
-                type="url" 
-                placeholder="https://example.com/image.jpg"
+              <label>Cover-Bild</label>
+              <ImageUpload 
+                v-model="articleForm.coverUrl"
+                folder="news"
+                placeholder="Cover-Bild für den Artikel hochladen"
+                @upload-start="isUploadingImage = true"
+                @upload-complete="onImageUploadComplete"
+                @upload-error="onImageUploadError"
               />
             </div>
           </div>
@@ -232,8 +245,9 @@
             <button type="button" @click="closeModal" class="btn-secondary">
               Abbrechen
             </button>
-            <button type="submit" class="btn-primary" :disabled="isSubmitting">
+            <button type="submit" class="btn-primary" :disabled="isSubmitting || isUploadingImage">
               <span v-if="isSubmitting">Speichert...</span>
+              <span v-else-if="isUploadingImage">Bild wird hochgeladen...</span>
               <span v-else>{{ showEditModal ? 'Aktualisieren' : 'Veröffentlichen' }}</span>
             </button>
           </div>
@@ -266,10 +280,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { Timestamp } from 'firebase/firestore'
 import { useNewsStore } from '../stores/news'
 import type { NewsArticle } from '../lib/types'
+import ImageUpload from '../components/ImageUpload.vue'
 
 const newsStore = useNewsStore()
 
@@ -281,6 +296,7 @@ const showCreateModal = ref(false)
 const showEditModal = ref(false)
 const showDeleteModal = ref(false)
 const isSubmitting = ref(false)
+const isUploadingImage = ref(false)
 
 // Form state
 const articleForm = ref({
@@ -337,23 +353,6 @@ const filteredArticles = computed(() => {
 })
 
 // Methods
-const generateSlug = () => {
-  if (!articleForm.value.title) {
-    articleForm.value.slug = ''
-    return
-  }
-  
-  articleForm.value.slug = articleForm.value.title
-    .toLowerCase()
-    .replace(/[äöüß]/g, (char) => {
-      const map: { [key: string]: string } = { 'ä': 'ae', 'ö': 'oe', 'ü': 'ue', 'ß': 'ss' }
-      return map[char] || char
-    })
-    .replace(/[^a-z0-9\s-]/g, '')
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '')
-}
 
 const updateTags = () => {
   const tags = tagsInput.value
@@ -414,15 +413,22 @@ const submitArticle = async () => {
     const articleDate = new Date(articleForm.value.date)
     const timestamp = Timestamp.fromDate(articleDate)
     
-    const articleData = {
+    const articleData: any = {
       title: articleForm.value.title,
       slug: articleForm.value.slug,
       date: timestamp,
       excerpt: articleForm.value.excerpt,
       content: articleForm.value.content,
-      coverUrl: articleForm.value.coverUrl || undefined,
-      tags: articleForm.value.tags.length > 0 ? articleForm.value.tags : undefined,
       createdAt: Timestamp.now()
+    }
+    
+    // Nur definierte Werte hinzufügen
+    if (articleForm.value.coverUrl && articleForm.value.coverUrl.trim()) {
+      articleData.coverUrl = articleForm.value.coverUrl
+    }
+    
+    if (articleForm.value.tags.length > 0) {
+      articleData.tags = articleForm.value.tags
     }
     
     if (showEditModal.value && editingArticle.value) {
@@ -474,6 +480,37 @@ const getReadTime = (content: string) => {
   const wordsPerMinute = 200
   const wordCount = getWordCount(content)
   return Math.max(1, Math.ceil(wordCount / wordsPerMinute))
+}
+
+// Slug aus Titel generieren
+const generateSlug = (title: string): string => {
+  return title
+    .toLowerCase()
+    .replace(/[äöü]/g, (match) => ({ 'ä': 'ae', 'ö': 'oe', 'ü': 'ue' }[match] || match))
+    .replace(/ß/g, 'ss')
+    .replace(/[^a-z0-9\s-]/g, '') // Nur Buchstaben, Zahlen, Leerzeichen und Bindestriche
+    .trim()
+    .replace(/\s+/g, '-') // Leerzeichen durch Bindestriche ersetzen
+    .replace(/-+/g, '-') // Mehrfache Bindestriche reduzieren
+    .replace(/^-|-$/g, '') // Bindestriche am Anfang/Ende entfernen
+}
+
+// Automatische Slug-Generierung beim Titel-Update
+watch(() => articleForm.value.title, (newTitle) => {
+  if (newTitle && (!articleForm.value.slug || articleForm.value.slug === '')) {
+    articleForm.value.slug = generateSlug(newTitle)
+  }
+})
+
+// Image Upload Event Handlers
+const onImageUploadComplete = (result: { url: string; fileName: string }) => {
+  isUploadingImage.value = false
+  console.log('Bild erfolgreich hochgeladen:', result)
+}
+
+const onImageUploadError = (error: string) => {
+  isUploadingImage.value = false
+  console.error('Bild-Upload fehlgeschlagen:', error)
 }
 
 onMounted(() => {
@@ -703,6 +740,7 @@ onMounted(() => {
 .article-actions {
   display: flex;
   gap: var(--spacing-sm);
+
 }
 
 .action-btn {
@@ -822,27 +860,64 @@ onMounted(() => {
   margin: 0;
 }
 
-.close-btn {
-  width: 36px;
-  height: 36px;
+/* Modern Close Button */
+.close-btn.modern-close-btn {
+  width: 44px;
+  height: 44px;
   border: none;
-  border-radius: var(--radius-md);
-  background: var(--color-gray-100);
-  color: var(--color-gray-600);
+  border-radius: var(--radius-full);
+  background: var(--color-gray-200);
+  color: var(--color-gray-700);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all var(--transition-fast);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--color-gray-300);
 }
 
-.close-btn:hover {
-  background: var(--color-gray-200);
+.close-btn.modern-close-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--color-red-500);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+  border-radius: var(--radius-full);
 }
 
-.close-btn svg {
-  width: 20px;
-  height: 20px;
+.close-btn.modern-close-btn:hover {
+  background: var(--color-red-50);
+  color: var(--color-red-600);
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15);
+}
+
+.close-btn.modern-close-btn:hover::before {
+  opacity: 0.1;
+}
+
+.close-btn.modern-close-btn:active {
+  transform: scale(0.95);
+}
+
+.close-btn.modern-close-btn .close-icon {
+  font-size: 24px;
+  font-weight: 300;
+  line-height: 1;
+  position: relative;
+  z-index: 1;
+  transition: transform var(--transition-fast);
+  user-select: none;
+}
+
+.close-btn.modern-close-btn:hover .close-icon {
+  transform: rotate(90deg);
 }
 
 .modal-form {
@@ -898,6 +973,76 @@ onMounted(() => {
   margin-top: var(--spacing-xs);
   color: var(--color-gray-500);
   font-size: var(--font-size-sm);
+}
+
+.slug-input-group {
+  display: flex;
+  gap: var(--spacing-xs);
+}
+
+.slug-input-group input {
+  flex: 1;
+}
+
+/* Modern Slug Generate Button */
+.slug-generate-btn.modern-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm) var(--spacing-md);
+  height: 44px;
+  background: linear-gradient(135deg, var(--color-blue-500) 0%, var(--color-blue-600) 100%);
+  color: var(--color-white);
+  border: none;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+}
+
+.slug-generate-btn.modern-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  background: linear-gradient(135deg, var(--color-blue-600) 0%, var(--color-blue-700) 100%);
+}
+
+.slug-generate-btn.modern-btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+}
+
+.slug-generate-btn.modern-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  background: var(--color-gray-400);
+  box-shadow: none;
+}
+
+.slug-generate-btn .btn-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.slug-generate-btn .btn-text {
+  white-space: nowrap;
+}
+
+/* Responsive: Hide text on small screens */
+@media (max-width: 640px) {
+  .slug-generate-btn .btn-text {
+    display: none;
+  }
+  
+  .slug-generate-btn.modern-btn {
+    padding: var(--spacing-sm);
+    width: 44px;
+    justify-content: center;
+  }
 }
 
 .tags-preview {
@@ -995,3 +1140,4 @@ onMounted(() => {
   }
 }
 </style>
+
