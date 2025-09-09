@@ -10,74 +10,41 @@
             Galerie
           </button>
           <span class="breadcrumb-separator">/</span>
-          <div v-if="renamingFolder === galleryStore.currentFolderData.id" class="breadcrumb-rename">
-            <input 
-              ref="breadcrumbRenameInput"
-              v-model="renameValue" 
-              type="text"
-              class="breadcrumb-rename-input"
-              @blur="cancelRename"
-              @keyup.enter="confirmRename"
-              @keyup.escape="cancelRename"
-            />
-            <button @click="confirmRename" class="breadcrumb-rename-btn confirm" title="Bestätigen">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-              </svg>
-              <span>Bestätigen</span>
-            </button>
-            <button @click="cancelRename" class="breadcrumb-rename-btn cancel" title="Abbrechen">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-              <span>Abbrechen</span>
-            </button>
-          </div>
-          <span v-else class="breadcrumb-current">
+         
+          <span >
             {{ galleryStore.currentFolderData.name }}
           </span>
         </div>
       </div>
       <div class="header-actions">
         <!-- Neuer Ordner nur in Hauptgalerie -->
-        <button v-if="!galleryStore.currentFolder" @click="showFolderModal = true" class="btn-secondary">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25H11.69l-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v6.75Z" />
-          </svg>
-          Neuer Ordner
-        </button>
+        <TomButton 
+          v-if="!galleryStore.currentFolder" 
+          @click="showFolderModal = true" 
+          variant="secondary"
+          title="Neuer Ordner"
+          icon="folder-new"
+        />
         
-        <!-- Ordner umbenennen nur wenn IN Ordner -->
-        <button v-if="galleryStore.currentFolder" @click="startRename(galleryStore.currentFolderData!)" class="btn-secondary">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 3.75H6A2.25 2.25 0 0 0 3.75 6v1.5M16.5 3.75H18A2.25 2.25 0 0 1 20.25 6v1.5m0 9V18A2.25 2.25 0 0 1 18 20.25h-1.5m-9 0H6A2.25 2.25 0 0 0 3.75 18v-1.5M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-          </svg>
-          Ordner umbenennen
-        </button>
         
         <!-- Bilder hinzufügen nur wenn IN Ordner -->
-        <button v-if="galleryStore.currentFolder" @click="showAddImagesModal = true" class="btn-secondary">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-          </svg>
-          Bilder hinzufügen
-        </button>
+        <TomButton 
+          @click="showAddImagesModal = true" 
+          variant="secondary" 
+          title="Bilder hinzufügen"
+          icon="add"
+          
+        />
         
-        <!-- Ordner löschen nur wenn IN Ordner -->
-        <button v-if="galleryStore.currentFolder" @click="confirmDeleteCurrentFolder" class="btn-danger">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916C15.75 3.42 15.23 3 14.625 3h-3.25c-.604 0-1.125.42-1.125.938v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-          </svg>
-          Ordner löschen
-        </button>
+     
         
         <!-- Bilder hochladen immer verfügbar -->
-        <button @click="showUploadModal = true" class="btn-primary">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
-          </svg>
-          Bilder hochladen
-        </button>
+        <TomButton 
+          @click="showUploadModal = true" 
+          variant="primary"
+          title="Bilder hochladen"
+          icon="upload"
+        />
       </div>
     </div>
 
@@ -135,16 +102,19 @@
             </div>
           </div>
           <div class="folder-actions visible" @click.stop>
-            <button @click="confirmDeleteFolder(folder)" class="action-btn delete prominent" title="Ordner löschen">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916C15.75 3.42 15.23 3 14.625 3h-3.25c-.604 0-1.125.42-1.125.938v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-              </svg>
-            </button>
-            <button @click="editFolder(folder)" class="action-btn secondary" title="Ordner bearbeiten">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-              </svg>
-            </button>
+            
+            <TomButton 
+              @click="confirmDeleteFolder(folder)" 
+              variant="action-delete" 
+              title="Ordner löschen"
+              icon="delete"
+            />
+            <TomButton 
+              @click="editFolder(folder)" 
+              variant="action" 
+              title="Ordner bearbeiten"
+              icon="edit"
+            />
           </div>
         </div>
       </div>
@@ -698,6 +668,7 @@ import { ref, computed, onMounted, nextTick } from 'vue'
 import { Timestamp } from 'firebase/firestore'
 import { useGalleryStore } from '../stores/gallery'
 import type { GalleryImage, GalleryFolder } from '../lib/types'
+import TomButton from '../tomponents/TomButton.vue'
 
 const galleryStore = useGalleryStore()
 
