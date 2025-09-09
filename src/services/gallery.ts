@@ -122,7 +122,7 @@ export const createImage = async (imageData: Omit<GalleryImage, 'id'>): Promise<
 /**
  * Bild hochladen
  */
-export const uploadImage = async (file: File, title?: string): Promise<GalleryImage> => {
+export const uploadImage = async (file: File, title?: string, folderId?: string): Promise<GalleryImage> => {
   try {
     const timestamp = Date.now()
     const filename = `${timestamp}_${file.name}`
@@ -141,6 +141,7 @@ export const uploadImage = async (file: File, title?: string): Promise<GalleryIm
       title: title || file.name,
       imageUrl,
       thumbnailUrl,
+      folderId: folderId || null,
       createdAt: Timestamp.now()
     }
     

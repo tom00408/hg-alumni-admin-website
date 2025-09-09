@@ -25,11 +25,21 @@ export interface NewsArticle {
 }
 
 // Gallery Types
+export interface GalleryFolder {
+  id?: string
+  name: string
+  description?: string
+  createdAt?: Timestamp
+  updatedAt?: Timestamp
+  coverImageId?: string // ID des Bildes, das als Cover verwendet wird
+}
+
 export interface GalleryImage {
   id?: string
   title?: string
   imageUrl: string
   thumbnailUrl?: string
+  folderId?: string // Zugehörigkeit zu einem Ordner (optional)
   createdAt?: Timestamp
 }
 
