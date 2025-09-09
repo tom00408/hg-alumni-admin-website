@@ -2,18 +2,12 @@
   <header class="header">
     <div class="header__content">
       <!-- Mobile Menu Button -->
-      <button 
-        class="menu-button"
-        :class="{ 'menu-button--active': sidebarOpen }"
+      <TomButton 
         @click="$emit('toggle-sidebar')"
-        :aria-label="sidebarOpen ? 'Menü schließen' : 'Menü öffnen'"
-      >
-        <span class="hamburger" :class="{ 'hamburger--active': sidebarOpen }">
-          <span class="hamburger__line"></span>
-          <span class="hamburger__line"></span>
-          <span class="hamburger__line"></span>
-        </span>
-      </button>
+        :title="sidebarOpen ? 'Menü schließen' : 'Menü öffnen'"
+        icon="menu"
+        variant="action"
+      />
 
       <!-- Mobile Logo -->
       <div class="header__logo">
@@ -29,18 +23,13 @@
           <div class="user-info">
             <span class="user-name">{{ authStore.userName }}</span>
           </div>
-          <button 
-            class="logout-button"
+          <TomButton 
             @click="handleLogout"
-            :disabled="authStore.isLoading"
             title="Abmelden"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-              <polyline points="16,17 21,12 16,7"/>
-              <line x1="21" y1="12" x2="9" y2="12"/>
-            </svg>
-          </button>
+            icon="logout"
+            variant="action"
+            :disabled="authStore.isLoading"
+          />
         </div>
       </div>
     </div>
@@ -49,6 +38,7 @@
 
 <script setup lang="ts">
 import { useAuthStore } from '../stores/auth'
+import TomButton from '../tomponents/TomButton.vue'
 
 interface Props {
   sidebarOpen?: boolean
@@ -95,28 +85,7 @@ const handleLogout = async (): Promise<void> => {
   padding: 0 var(--spacing-lg);
 }
 
-.menu-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  border: none;
-  background: none;
-  cursor: pointer;
-  padding: 0;
-  border-radius: var(--radius-md);
-  transition: background-color var(--transition-fast);
-}
 
-.menu-button:hover {
-  background-color: var(--color-gray-100);
-}
-
-.menu-button:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
-}
 
 .hamburger {
   display: flex;

@@ -42,21 +42,17 @@
 
     <template #footer>
       <div class="news-card__actions">
-        <button 
-          class="btn-primary"
+        <TomButton 
           @click="$emit('read-more', article)"
-        >
-          Mehr lesen
-        </button>
-        <button 
-          class="btn-secondary share-button"
+          title="Mehr lesen"
+          variant="primary"
+        />
+        <TomButton 
           @click="$emit('share', article)"
-          aria-label="Artikel teilen"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/>
-          </svg>
-        </button>
+          title="Artikel teilen"
+          icon="share"
+          variant="action"
+        />
       </div>
     </template>
   </HgCard>
@@ -66,6 +62,7 @@
 import { Timestamp } from 'firebase/firestore'
 import HgCard from './HgCard.vue'
 import type { NewsArticle } from '../lib/types'
+import TomButton from '../tomponents/TomButton.vue'
 
 interface Props {
   article: NewsArticle
@@ -182,26 +179,7 @@ const formatDate = (timestamp: Timestamp) => {
   border-top: 1px solid var(--color-gray-100);
 }
 
-.share-button {
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  border-radius: 50%;
-  background-color: var(--color-gray-100);
-  color: var(--color-gray-600);
-  border: none;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
 
-.share-button:hover {
-  background-color: var(--color-primary);
-  color: var(--color-white);
-  transform: translateY(-1px);
-}
 
 /* Wenn kein Bild vorhanden ist */
 .news-card:not(:has(.news-card__image)) .news-card__content {
@@ -232,8 +210,6 @@ const formatDate = (timestamp: Timestamp) => {
     align-items: stretch;
   }
   
-  .share-button {
-    align-self: center;
-  }
+
 }
 </style>

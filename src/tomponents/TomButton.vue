@@ -40,6 +40,7 @@ const ICON_MAP = {
   'close': 'M6 18 18 6M6 6l12 12',
   'check': 'M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z',
   'cancel': 'M6 18 18 6M6 6l12 12',
+  'refresh': 'M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99',
   
   // Upload & Download
   'upload': 'M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5',
@@ -49,6 +50,7 @@ const ICON_MAP = {
   'back': 'M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18',
   'forward': 'M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3',
   'home': 'M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25',
+  'menu': 'M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5',
   
   // View Controls
   'search': 'm21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z',
@@ -63,6 +65,7 @@ const ICON_MAP = {
   // Settings & Tools
   'settings': 'M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a6.759 6.759 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z',
   'filter': 'M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z',
+  'share': 'M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z',
   
   // User & Auth
   'user': 'M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z',
@@ -332,24 +335,45 @@ const handleClick = (event: MouseEvent) => {
   height: 40px;
   padding: 0;
   border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--color-white);
   color: var(--color-gray-700);
   min-height: unset;
+  border: 1px solid var(--color-gray-300);
+  box-shadow: var(--shadow-sm);
 }
 
 .tom-btn-action:hover:not(.tom-btn-disabled):not(.tom-btn-loading) {
-  background: var(--color-white);
-  transform: scale(1.1);
+  background: var(--color-gray-50);
+  border-color: var(--color-gray-400);
+  transform: scale(1.05);
+  box-shadow: var(--shadow-md);
+}
+
+.tom-btn-action:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(83, 98, 254, 0.1);
 }
 
 .tom-btn-action-selected {
   background: var(--color-primary);
   color: var(--color-white);
+  border-color: var(--color-primary);
+}
+
+.tom-btn-action-selected:hover:not(.tom-btn-disabled):not(.tom-btn-loading) {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.tom-btn-action-delete {
+  border-color: var(--color-red-300);
 }
 
 .tom-btn-action-delete:hover:not(.tom-btn-disabled):not(.tom-btn-loading) {
   background: var(--color-error);
   color: var(--color-white);
+  border-color: var(--color-error);
+  box-shadow: var(--shadow-lg);
 }
 
 /* States */
@@ -423,11 +447,8 @@ const handleClick = (event: MouseEvent) => {
   gap: var(--spacing-sm);
 }
 
-/* Action Buttons sind immer icon-only */
+/* Action Buttons sind immer icon-only - nur Layout-Eigenschaften */
 .tom-btn-action {
-  width: 40px;
-  height: 40px;
-  padding: 0;
   gap: 0;
   aspect-ratio: 1;
   justify-content: center;

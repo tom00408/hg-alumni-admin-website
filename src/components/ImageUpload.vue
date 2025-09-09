@@ -5,28 +5,22 @@
       <div v-if="previewUrl && !isUploading" class="image-preview">
         <img :src="previewUrl" :alt="fileName || 'Vorschau'" />
         <div class="image-overlay">
-          <button 
+          <TomButton 
             type="button"
             @click="removeImage" 
-            class="remove-btn"
             title="Bild entfernen"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="m18 6-12 12m0-12 12 12"/>
-            </svg>
-          </button>
-          <button 
+            icon="delete"
+            variant="action-delete"
+            size="small"
+          />
+          <TomButton 
             type="button"
             @click="triggerUpload" 
-            class="replace-btn"
             title="Bild ersetzen"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-              <polyline points="17,8 12,3 7,8"/>
-              <line x1="12" y1="3" x2="12" y2="15"/>
-            </svg>
-          </button>
+            icon="upload"
+            variant="action"
+            size="small"
+          />
         </div>
       </div>
 
@@ -84,6 +78,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { imageUploadService } from '../services/imageUpload'
+import TomButton from '../tomponents/TomButton.vue'
 
 interface Props {
   modelValue?: string

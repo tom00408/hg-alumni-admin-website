@@ -31,12 +31,12 @@
 
     <template #footer>
       <div class="event-item__actions">
-        <button 
-          class="btn-primary"
+        <TomButton 
           @click="$emit('view-details', event)"
-        >
-          Details ansehen
-        </button>
+          title="Details ansehen"
+          icon="info"
+          variant="primary"
+        />
       </div>
     </template>
   </HgCard>
@@ -46,6 +46,7 @@
 import { Timestamp } from 'firebase/firestore'
 import HgCard from './HgCard.vue'
 import type { Event } from '../lib/types'
+import TomButton from '../tomponents/TomButton.vue'
 
 interface Props {
   event: Event

@@ -107,7 +107,13 @@
             </div>
             <div v-else-if="eventsStore.nextUpcomingEvents.length === 0" class="empty-state">
               <p>Keine kommenden Termine</p>
-              <router-link to="/termine" class="btn-primary">Termin erstellen</router-link>
+              <router-link to="/termine">
+                <TomButton 
+                  title="Termin erstellen"
+                  icon="add"
+                  variant="primary"
+                />
+              </router-link>
             </div>
             <div v-else class="events-list">
               <div 
@@ -141,7 +147,13 @@
             </div>
             <div v-else-if="newsStore.latestArticles.length === 0" class="empty-state">
               <p>Keine Artikel vorhanden</p>
-              <router-link to="/news" class="btn-primary">Artikel erstellen</router-link>
+              <router-link to="/news">
+                <TomButton 
+                  title="Artikel erstellen"
+                  icon="add"
+                  variant="primary"
+                />
+              </router-link>
             </div>
             <div v-else class="news-list">
               <div 
@@ -174,6 +186,7 @@ import { useEventsStore } from '../stores/events'
 import { useNewsStore } from '../stores/news'
 import { useGalleryStore } from '../stores/gallery'
 import { useMembershipStore } from '../stores/membership'
+import TomButton from '../tomponents/TomButton.vue'
 
 const eventsStore = useEventsStore()
 const newsStore = useNewsStore()

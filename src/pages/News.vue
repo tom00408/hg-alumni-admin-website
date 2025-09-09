@@ -5,12 +5,12 @@
         <h1>News verwalten</h1>
         <p>Erstelle und verwalte Artikel für den Alumni-Verein</p>
       </div>
-      <button @click="showCreateModal = true" class="btn-primary">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-        </svg>
-        Neuen Artikel erstellen
-      </button>
+      <TomButton 
+        @click="showCreateModal = true" 
+        title="Neuen Artikel erstellen"
+        icon="add"
+        variant="primary"
+      />
     </div>
 
     <!-- Filter und Suche -->
@@ -58,9 +58,12 @@
         </div>
         <h3>Keine Artikel gefunden</h3>
         <p>{{ searchQuery || selectedTag ? 'Keine Artikel entsprechen deinen Filterkriterien.' : 'Erstelle deinen ersten Artikel für den Alumni-Verein.' }}</p>
-        <button @click="showCreateModal = true" class="btn-primary">
-          Neuen Artikel erstellen
-        </button>
+        <TomButton 
+          @click="showCreateModal = true" 
+          title="Neuen Artikel erstellen"
+          icon="add"
+          variant="primary"
+        />
       </div>
 
       <div v-else class="articles-grid">
@@ -88,16 +91,18 @@
                 <span class="slug">{{ article.slug }}</span>
               </div>
               <div class="article-actions">
-                <button @click="editArticle(article)" class="action-btn" title="Bearbeiten">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-                  </svg>
-                </button>
-                <button @click="confirmDelete(article)" class="action-btn delete" title="Löschen">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916C15.75 3.42 15.23 3 14.625 3h-3.25c-.604 0-1.125.42-1.125.938v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-                  </svg>
-                </button>
+                <TomButton 
+                  @click="editArticle(article)" 
+                  title="Bearbeiten"
+                  icon="edit"
+                  variant="action"
+                />
+                <TomButton 
+                  @click="confirmDelete(article)" 
+                  title="Löschen"
+                  icon="delete"
+                  variant="action-delete"
+                />
               </div>
             </div>
 
@@ -131,9 +136,12 @@
       <div class="modal large" @click.stop>
         <div class="modal-header">
           <h2>{{ showEditModal ? 'Artikel bearbeiten' : 'Neuen Artikel erstellen' }}</h2>
-          <button @click="closeModal" class="close-btn modern-close-btn">
-            <span class="close-icon">×</span>
-          </button>
+          <TomButton 
+            @click="closeModal" 
+            title="Schließen"
+            icon="close"
+            variant="action"
+          />
         </div>
 
         <form @submit.prevent="submitArticle" class="modal-form">
@@ -160,18 +168,15 @@
                 pattern="[a-z0-9\\-]+"
                 title="Nur Kleinbuchstaben, Zahlen und Bindestriche erlaubt"
               />
-              <button 
-                type="button" 
+              <TomButton 
                 @click="articleForm.slug = generateSlug(articleForm.title)"
-                class="slug-generate-btn modern-btn"
-                title="Slug aus Titel generieren"
+                title="Slug aus Titel generieren" 
+                icon="refresh"
+                variant="secondary"
+                size="small"
                 :disabled="!articleForm.title"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="btn-icon">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
-                </svg>
-                <span class="btn-text">Erneuern</span>
-              </button>
+                responsive
+              />
             </div>
             <small>Wird aus dem Titel automatisch generiert. Nur Kleinbuchstaben, Zahlen und Bindestriche.</small>
           </div>
@@ -236,20 +241,30 @@
             <div v-if="articleForm.tags.length" class="tags-preview">
               <span v-for="tag in articleForm.tags" :key="tag" class="tag-preview">
                 {{ tag }}
-                <button type="button" @click="removeTag(tag)" class="tag-remove">×</button>
+                <TomButton 
+                  @click="removeTag(tag)" 
+                  title="Tag entfernen"
+                  icon="close"
+                  variant="action-delete"
+                  size="small"
+                />
               </span>
             </div>
           </div>
 
           <div class="modal-actions">
-            <button type="button" @click="closeModal" class="btn-secondary">
-              Abbrechen
-            </button>
-            <button type="submit" class="btn-primary" :disabled="isSubmitting || isUploadingImage">
-              <span v-if="isSubmitting">Speichert...</span>
-              <span v-else-if="isUploadingImage">Bild wird hochgeladen...</span>
-              <span v-else>{{ showEditModal ? 'Aktualisieren' : 'Veröffentlichen' }}</span>
-            </button>
+            <TomButton 
+              @click="closeModal" 
+              title="Abbrechen"
+              variant="secondary"
+            />
+            <TomButton 
+              type="submit" 
+              :title="isSubmitting ? 'Speichert...' : isUploadingImage ? 'Bild wird hochgeladen...' : showEditModal ? 'Aktualisieren' : 'Veröffentlichen'"
+              icon="save"
+              variant="primary" 
+              :disabled="isSubmitting || isUploadingImage"
+            />
           </div>
         </form>
       </div>
@@ -266,13 +281,18 @@
           <p class="warning">Diese Aktion kann nicht rückgängig gemacht werden.</p>
         </div>
         <div class="modal-actions">
-          <button @click="showDeleteModal = false" class="btn-secondary">
-            Abbrechen
-          </button>
-          <button @click="deleteArticle" class="btn-danger" :disabled="isSubmitting">
-            <span v-if="isSubmitting">Lösche...</span>
-            <span v-else>Löschen</span>
-          </button>
+          <TomButton 
+            @click="showDeleteModal = false" 
+            title="Abbrechen"
+            variant="secondary"
+          />
+          <TomButton 
+            @click="deleteArticle" 
+            :title="isSubmitting ? 'Lösche...' : 'Löschen'"
+            icon="delete"
+            variant="danger" 
+            :disabled="isSubmitting"
+          />
         </div>
       </div>
     </div>
@@ -285,6 +305,7 @@ import { Timestamp } from 'firebase/firestore'
 import { useNewsStore } from '../stores/news'
 import type { NewsArticle } from '../lib/types'
 import ImageUpload from '../components/ImageUpload.vue'
+import TomButton from '../tomponents/TomButton.vue'
 
 const newsStore = useNewsStore()
 

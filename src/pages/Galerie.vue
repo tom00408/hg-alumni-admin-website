@@ -6,9 +6,12 @@
         <p>Lade Bilder hoch und verwalte die Fotogalerie des Alumni-Vereins</p>
         <!-- Breadcrumb -->
         <div v-if="galleryStore.currentFolderData" class="breadcrumb">
-          <button @click="galleryStore.setCurrentFolder(null)" class="breadcrumb-btn">
-            Galerie
-          </button>
+          <TomButton 
+            @click="galleryStore.setCurrentFolder(null)" 
+            title="Galerie"
+            variant="secondary"
+            size="small"
+          />
           <span class="breadcrumb-separator">/</span>
          
           <span >
@@ -28,7 +31,9 @@
         
         
         <!-- Bilder hinzufügen nur wenn IN Ordner -->
+
         <TomButton 
+          v-if="galleryStore.currentFolder"
           @click="showAddImagesModal = true" 
           variant="secondary" 
           title="Bilder hinzufügen"
@@ -81,18 +86,20 @@
                 @keyup.escape="cancelRename"
               />
               <div class="folder-rename-actions">
-                <button @click="confirmRename" class="rename-btn confirm" title="Bestätigen">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                  </svg>
-                  <span>Bestätigen</span>
-                </button>
-                <button @click="cancelRename" class="rename-btn cancel" title="Abbrechen">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                  <span>Abbrechen</span>
-                </button>
+                <TomButton 
+                  @click="confirmRename" 
+                  title="Bestätigen"
+                  icon="check"
+                  variant="action"
+                  size="small"
+                />
+                <TomButton 
+                  @click="cancelRename" 
+                  title="Abbrechen"
+                  icon="close"
+                  variant="action-delete"
+                  size="small"
+                />
               </div>
             </div>
             <div v-else>
@@ -141,26 +148,19 @@
             <option value="title-desc">Titel Z-A</option>
           </select>
           <div class="view-toggle">
-            <button 
+            <TomButton 
               @click="viewMode = 'grid'" 
-              :class="{ active: viewMode === 'grid' }"
-              class="view-btn"
+              :variant="viewMode === 'grid' ? 'action-selected' : 'action'"
               title="Gitteransicht"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 0 1-1.125-1.125M3.375 19.5h1.5a1.125 1.125 0 0 1 1.125-1.125m12.75 0a1.125 1.125 0 0 1 1.125 1.125m1.125 1.125a1.125 1.125 0 0 1-1.125 1.125M3.375 7.5h17.25m-17.25 0a1.125 1.125 0 0 1-1.125-1.125M3.375 7.5h1.5a1.125 1.125 0 0 1 1.125-1.125m12.75 0a1.125 1.125 0 0 1 1.125 1.125M19.5 7.5a1.125 1.125 0 0 1-1.125 1.125M5.625 3.375a1.125 1.125 0 0 1 1.125-1.125h2.25a1.125 1.125 0 0 1 1.125 1.125v2.25a1.125 1.125 0 0 1-1.125 1.125H6.75a1.125 1.125 0 0 1-1.125-1.125V3.375ZM5.625 10.125A1.125 1.125 0 0 1 6.75 9h2.25a1.125 1.125 0 0 1 1.125 1.125v2.25A1.125 1.125 0 0 1 9 13.5H6.75a1.125 1.125 0 0 1-1.125-1.125v-2.25ZM13.125 3.375A1.125 1.125 0 0 1 14.25 2.25h2.25a1.125 1.125 0 0 1 1.125 1.125v2.25a1.125 1.125 0 0 1-1.125 1.125H14.25a1.125 1.125 0 0 1-1.125-1.125V3.375ZM13.125 10.125A1.125 1.125 0 0 1 14.25 9h2.25a1.125 1.125 0 0 1 1.125 1.125v2.25a1.125 1.125 0 0 1-1.125 1.125H14.25a1.125 1.125 0 0 1-1.125-1.125v-2.25Z" />
-              </svg>
-            </button>
-            <button 
+              icon="view-grid"
+            />
+          
+            <TomButton 
               @click="viewMode = 'list'" 
-              :class="{ active: viewMode === 'list' }"
-              class="view-btn"
+              :variant="viewMode === 'list' ? 'action-selected' : 'action'"
               title="Listenansicht"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
-              </svg>
-            </button>
+              icon="view-list"
+            />
           </div>
         </div>
       </div>
@@ -183,15 +183,17 @@
         </div>
       </div>
       <div v-if="selectedImages.length > 0" class="bulk-actions">
-        <button @click="confirmBulkDelete" class="btn-danger">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916C15.75 3.42 15.23 3 14.625 3h-3.25c-.604 0-1.125.42-1.125.938v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-          </svg>
-          {{ selectedImages.length }} {{ selectedImages.length === 1 ? 'Bild' : 'Bilder' }} löschen
-        </button>
-        <button @click="clearSelection" class="btn-secondary">
-          Auswahl aufheben
-        </button>
+        <TomButton 
+          @click="confirmBulkDelete" 
+          :title="`${selectedImages.length} ${selectedImages.length === 1 ? 'Bild' : 'Bilder'} löschen`"
+          icon="delete"
+          variant="danger"
+        />
+        <TomButton 
+          @click="clearSelection" 
+          title="Auswahl aufheben"
+          variant="secondary"
+        />
       </div>
     </div>
 
@@ -210,9 +212,12 @@
         </div>
         <h3>Keine Bilder gefunden</h3>
         <p>{{ searchQuery ? 'Keine Bilder entsprechen deiner Suche.' : 'Lade deine ersten Bilder in die Galerie hoch.' }}</p>
-        <button @click="showUploadModal = true" class="btn-primary">
-          Bilder hochladen
-        </button>
+        <TomButton 
+          @click="showUploadModal = true" 
+          title="Bilder hochladen"
+          icon="upload"
+          variant="primary"
+        />
       </div>
 
       <!-- Grid View -->
@@ -232,26 +237,24 @@
             />
             <div class="image-overlay">
               <div class="image-actions">
-                <button 
+                <TomButton 
                   @click="toggleSelection(image.id!)" 
-                  class="action-btn"
-                  :class="{ 'selected': selectedImages.includes(image.id!) }"
+                  :variant="selectedImages.includes(image.id!) ? 'action-selected' : 'action'"
                   title="Auswählen"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                  </svg>
-                </button>
-                <button @click="editImage(image)" class="action-btn" title="Bearbeiten">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-                  </svg>
-                </button>
-                <button @click="confirmDelete(image)" class="action-btn delete" title="Löschen">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916C15.75 3.42 15.23 3 14.625 3h-3.25c-.604 0-1.125.42-1.125.938v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-                  </svg>
-                </button>
+                  icon="check"
+                />
+                <TomButton 
+                  @click="editImage(image)" 
+                  title="Bearbeiten"
+                  icon="edit"
+                  variant="action"
+                />
+                <TomButton 
+                  @click="confirmDelete(image)" 
+                  title="Löschen"
+                  icon="delete"
+                  variant="action-delete"
+                />
               </div>
             </div>
           </div>
@@ -290,16 +293,19 @@
             <p class="image-date">Hochgeladen am {{ formatDate(image.createdAt?.toDate()) }}</p>
           </div>
           <div class="list-actions">
-            <button @click="editImage(image)" class="action-btn" title="Bearbeiten">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-              </svg>
-            </button>
-            <button @click="confirmDelete(image)" class="action-btn delete" title="Löschen">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916C15.75 3.42 15.23 3 14.625 3h-3.25c-.604 0-1.125.42-1.125.938v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-              </svg>
-            </button>
+            <TomButton 
+              @click="editImage(image)" 
+              title="Bearbeiten"
+              icon="edit"
+              variant="action"
+            />
+            <TomButton 
+              @click="confirmDelete(image)" 
+              title="Löschen"
+              icon="delete"
+              variant="action-delete"
+            />
+            
           </div>
         </div>
       </div>
@@ -310,11 +316,12 @@
       <div class="modal" @click.stop>
         <div class="modal-header">
           <h2>Bilder hochladen</h2>
-          <button @click="closeUploadModal" class="close-btn">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-            </svg>
-          </button>
+          <TomButton 
+            @click="closeUploadModal" 
+            variant="action" 
+            title="Schließen"
+            icon="close"
+            />
         </div>
 
         <div class="modal-body">
@@ -339,10 +346,13 @@
               accept="image/*"
               @change="handleFileSelect"
               style="display: none;"
-            />
-            <button @click="fileInput?.click()" class="btn-primary">
-              Dateien auswählen
-            </button>
+              />
+              <TomButton 
+                @click="fileInput?.click()" 
+                variant="primary" 
+                title="Dateien auswählen"
+                icon="upload"
+              />
           </div>
 
           <div v-if="uploadQueue.length > 0" class="upload-queue">
@@ -363,11 +373,13 @@
                   </div>
                   <p class="queue-meta">{{ file.name }} • {{ formatFileSize(file.size) }}</p>
                 </div>
-                <button @click="removeFromQueue(index)" class="queue-remove">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-                  </svg>
-                </button>
+
+                <TomButton 
+                  @click="removeFromQueue(index)" 
+                  variant="action" 
+                  title="Entfernen"
+                  icon="delete"
+                />
               </div>
             </div>
           </div>
@@ -403,9 +415,12 @@
         </div>
 
         <div class="modal-actions">
-          <button @click="closeUploadModal" class="btn-secondary">
-            Abbrechen
-          </button>
+          <TomButton 
+            @click="closeUploadModal" 
+            variant="secondary" 
+            title="Abbrechen"
+            icon="close"
+          />
           <button 
             @click="startUpload" 
             class="btn-primary" 
@@ -478,11 +493,12 @@
       <div class="modal" @click.stop>
         <div class="modal-header">
           <h2>{{ editingFolder ? 'Ordner bearbeiten' : 'Neuen Ordner erstellen' }}</h2>
-          <button @click="closeFolderModal" class="close-btn">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-            </svg>
-          </button>
+          <TomButton 
+            @click="closeFolderModal" 
+            variant="action" 
+            title="Schließen"
+            icon="close"
+          />
         </div>
 
         <form @submit.prevent="submitFolder" class="modal-form">
@@ -508,9 +524,12 @@
           </div>
 
           <div class="modal-actions">
-            <button type="button" @click="closeFolderModal" class="btn-secondary">
-              Abbrechen
-            </button>
+            <TomButton 
+              @click="closeFolderModal" 
+              variant="secondary" 
+              title="Abbrechen"
+              icon="close"
+            />
             <button type="submit" class="btn-primary" :disabled="isSubmitting || !folderForm.name.trim()">
               <span v-if="isSubmitting">{{ editingFolder ? 'Aktualisiert...' : 'Erstellt...' }}</span>
               <span v-else>{{ editingFolder ? 'Aktualisieren' : 'Erstellen' }}</span>

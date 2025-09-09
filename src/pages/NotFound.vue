@@ -43,12 +43,20 @@
 
           <!-- Actions -->
           <div class="error-actions">
-            <router-link to="/" class="btn-primary btn-large">
-              Zur Startseite
+            <router-link to="/">
+              <TomButton 
+                title="Zur Startseite"
+                icon="home"
+                variant="primary"
+                size="large"
+              />
             </router-link>
-            <button @click="goBack" class="btn-secondary">
-              Zurück
-            </button>
+            <TomButton 
+              @click="goBack" 
+              title="Zurück"
+              icon="back"
+              variant="secondary"
+            />
           </div>
 
           <!-- Search -->
@@ -62,11 +70,12 @@
                 class="search-input"
                 @keyup.enter="performSearch"
               />
-              <button @click="performSearch" class="search-button">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
-                </svg>
-              </button>
+              <TomButton 
+                @click="performSearch" 
+                title="Suchen"
+                icon="search"
+                variant="action"
+              />
             </div>
           </div>
         </div>
@@ -79,6 +88,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import HgCard from '../components/HgCard.vue'
+import TomButton from '../tomponents/TomButton.vue'
 
 const router = useRouter()
 const searchQuery = ref('')
@@ -311,22 +321,6 @@ const performSearch = () => {
   background-color: var(--color-white);
 }
 
-.search-button {
-  padding: var(--spacing-md);
-  background-color: var(--color-primary);
-  color: var(--color-white);
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color var(--transition-fast);
-}
-
-.search-button:hover {
-  background-color: var(--color-accent);
-}
-
 /* Mobile Anpassungen */
 @media (max-width: 768px) {
   .error-code {
@@ -369,10 +363,6 @@ const performSearch = () => {
     flex-direction: column;
   }
   
-  .search-button {
-    padding: var(--spacing-md);
-    border-radius: 0 0 var(--radius-md) var(--radius-md);
-  }
 }
 
 /* Animation */

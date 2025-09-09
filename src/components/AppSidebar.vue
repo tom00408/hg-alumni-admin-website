@@ -48,19 +48,13 @@
           <p class="user-email">{{ authStore.userEmail }}</p>
         </div>
       </div>
-      <button 
-        class="logout-button"
+      <TomButton 
         @click="handleLogout"
-        :disabled="authStore.isLoading"
         title="Abmelden"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-          <polyline points="16,17 21,12 16,7"/>
-          <line x1="21" y1="12" x2="9" y2="12"/>
-        </svg>
-        <span>Abmelden</span>
-      </button>
+        icon="logout"
+        variant="secondary"
+        :disabled="authStore.isLoading"
+      />
     </div>
 
     <!-- Footer -->
@@ -85,15 +79,13 @@
           </div>
           <span class="mobile-title">Alumni Verein</span>
         </div>
-        <button 
-          class="mobile-close-btn"
+        <TomButton 
           @click="$emit('close')"
-          aria-label="Menü schließen"
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-          </svg>
-        </button>
+          title="Menü schließen"
+          icon="close"
+          variant="action"
+          size="medium"
+        />
       </div>
       
       <nav class="mobile-nav">
@@ -130,18 +122,13 @@
             <p class="mobile-user-email">{{ authStore.userEmail }}</p>
           </div>
         </div>
-        <button 
-          class="mobile-logout-button"
+        <TomButton 
           @click="handleLogout"
+          title="Abmelden"
+          icon="logout"
+          variant="secondary"
           :disabled="authStore.isLoading"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-            <polyline points="16,17 21,12 16,7"/>
-            <line x1="21" y1="12" x2="9" y2="12"/>
-          </svg>
-          <span>Abmelden</span>
-        </button>
+        />
       </div>
       
       <div class="mobile-nav-footer">
@@ -154,6 +141,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useAuthStore } from '../stores/auth'
+import TomButton from '../tomponents/TomButton.vue'
 
 interface Props {
   isOpen?: boolean
@@ -413,33 +401,6 @@ const navigationItems = [
   text-overflow: ellipsis;
 }
 
-.logout-button {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  width: 100%;
-  padding: var(--spacing-sm) var(--spacing-md);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.9);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-}
-
-.logout-button:hover {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.3);
-  color: var(--color-white);
-}
-
-.logout-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
 .sidebar__footer {
   padding: var(--spacing-lg);
   border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -654,33 +615,6 @@ const navigationItems = [
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.mobile-logout-button {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  width: 100%;
-  padding: var(--spacing-sm) var(--spacing-md);
-  border: 1px solid var(--color-red-200);
-  background: var(--color-red-50);
-  color: var(--color-red-600);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-}
-
-.mobile-logout-button:hover {
-  background: var(--color-red-100);
-  border-color: var(--color-red-300);
-  color: var(--color-red-700);
-}
-
-.mobile-logout-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 .mobile-nav-footer p {

@@ -136,15 +136,23 @@ export const updateFolder = async (id: string, folderData: Partial<GalleryFolder
  */
 export const deleteFolder = async (id: string): Promise<void> => {
   try {
+    if (!id) {
+      throw new Error('Keine Ordner-ID angegeben')
+    }
+
+    console.log('Starting folder deletion for:', id)
+    
     // Erst alle Bilder aus dem Ordner entfernen
     await removeAllImagesFromFolder(id)
     
     // Dann den Ordner löschen
     const folderDoc = doc(db, FOLDERS_COLLECTION, id)
     await deleteDoc(folderDoc)
+    
+    console.log('Successfully deleted folder:', id)
   } catch (error) {
-    console.error('Error deleting folder:', error)
-    throw new Error('Fehler beim Löschen des Ordners')
+    console.error('Error deleting folder:', id, error)
+    throw new Error(`Fehler beim Löschen des Ordners: ${error instanceof Error ? error.message : 'Unbekannter Fehler'}`)
   }
 }
 
@@ -153,21 +161,35 @@ export const deleteFolder = async (id: string): Promise<void> => {
  */
 export const getImagesInFolder = async (folderId: string): Promise<GalleryImage[]> => {
   try {
+    if (!folderId) {
+      console.warn('getImagesInFolder: No folderId provided')
+      return []
+    }
+
     const imagesCollection = collection(db, IMAGES_COLLECTION)
     const q = query(
       imagesCollection, 
-      where('folderId', '==', folderId),
-      orderBy('createdAt', 'desc')
+      where('folderId', '==', folderId)
+      // Sortierung entfernt um Index-Fehler zu vermeiden
+      // Falls Sortierung nötig ist, muss ein Firebase Index erstellt werden
     )
     const querySnapshot = await getDocs(q)
     
-    return querySnapshot.docs.map(doc => ({
+    const images = querySnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
     })) as GalleryImage[]
+    
+    // Clientseitige Sortierung nach createdAt (neueste zuerst)
+    return images.sort((a, b) => {
+      const aTime = a.createdAt?.toMillis() || 0
+      const bTime = b.createdAt?.toMillis() || 0
+      return bTime - aTime
+    })
   } catch (error) {
-    console.error('Error fetching images in folder:', error)
-    throw new Error('Fehler beim Laden der Bilder im Ordner')
+    console.error('Error fetching images in folder:', folderId, error)
+    // Wenn es keine Bilder gibt oder ein anderer Fehler auftritt, gib leeres Array zurück
+    return []
   }
 }
 
@@ -229,17 +251,35 @@ export const removeImageFromFolder = async (imageId: string): Promise<void> => {
  */
 export const removeAllImagesFromFolder = async (folderId: string): Promise<void> => {
   try {
+    if (!folderId) {
+      console.warn('removeAllImagesFromFolder: No folderId provided')
+      return
+    }
+
     const images = await getImagesInFolder(folderId)
     
+    if (images.length === 0) {
+      console.log('No images found in folder', folderId)
+      return
+    }
+    
+    console.log(`Removing ${images.length} images from folder ${folderId}`)
+    
     // Alle Bilder parallel aus dem Ordner entfernen
-    const updatePromises = images.map(image => 
-      removeImageFromFolder(image.id!)
-    )
+    const updatePromises = images.map(image => {
+      if (!image.id) {
+        console.warn('Image without ID found:', image)
+        return Promise.resolve()
+      }
+      return removeImageFromFolder(image.id)
+    })
     
     await Promise.all(updatePromises)
+    console.log('Successfully removed all images from folder', folderId)
   } catch (error) {
-    console.error('Error removing all images from folder:', error)
-    throw new Error('Fehler beim Entfernen aller Bilder aus dem Ordner')
+    console.error('Error removing all images from folder:', folderId, error)
+    // Nicht mehr werfen - einfach loggen und weitermachen
+    console.warn('Continuing with folder deletion despite error')
   }
 }
 

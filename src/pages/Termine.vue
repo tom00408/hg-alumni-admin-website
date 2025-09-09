@@ -5,12 +5,12 @@
         <h1>Termine verwalten</h1>
         <p>Erstelle und verwalte Events für den Alumni-Verein</p>
       </div>
-      <button @click="showCreateModal = true" class="btn-primary">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-        </svg>
-        Neuen Termin erstellen
-      </button>
+      <TomButton 
+        @click="showCreateModal = true" 
+        title="Neuen Termin erstellen"
+        icon="add"
+        variant="primary"
+      />
     </div>
 
     <!-- Filter und Suche -->
@@ -50,9 +50,12 @@
         </div>
         <h3>Keine Termine gefunden</h3>
         <p>{{ searchQuery ? 'Keine Termine entsprechen deiner Suche.' : 'Erstelle deinen ersten Termin für den Alumni-Verein.' }}</p>
-        <button @click="showCreateModal = true" class="btn-primary">
-          Neuen Termin erstellen
-        </button>
+        <TomButton 
+          @click="showCreateModal = true" 
+          title="Neuen Termin erstellen"
+          icon="add"
+          variant="primary"
+        />
       </div>
 
       <div v-else class="events-grid">
@@ -71,44 +74,43 @@
             <div class="event-actions">
               <!-- Desktop: Separate Buttons -->
               <div class="action-buttons">
-                <button @click="editEvent(event)" class="action-btn edit-btn" title="Event bearbeiten">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-                  </svg>
-                  <span class="btn-text">Bearbeiten</span>
-                </button>
-                <button @click="confirmDelete(event)" class="action-btn delete-btn" title="Event löschen">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916C15.75 3.42 15.23 3 14.625 3h-3.25c-.604 0-1.125.42-1.125.938v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-                  </svg>
-                  <span class="btn-text">Löschen</span>
-                </button>
+                <TomButton 
+                  @click="editEvent(event)" 
+                  title="Event bearbeiten"
+                  icon="edit"
+                  variant="action"
+                />
+                <TomButton 
+                  @click="confirmDelete(event)" 
+                  title="Event löschen"
+                  icon="delete"
+                  variant="action-delete"
+                />
               </div>
 
               <!-- Mobile: Dropdown Menu -->
               <div class="mobile-dropdown" :class="{ 'active': activeDropdown === event.id }">
-                <button 
+                <TomButton 
                   @click="toggleDropdown(event.id!)" 
-                  class="dropdown-trigger"
                   title="Aktionen"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
-                  </svg>
-                </button>
+                  icon="menu"
+                  variant="action"
+                />
                 <div class="dropdown-menu">
-                  <button @click="editEvent(event); closeDropdown()" class="dropdown-item edit-item">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-                    </svg>
-                    Bearbeiten
-                  </button>
-                  <button @click="confirmDelete(event); closeDropdown()" class="dropdown-item delete-item">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916C15.75 3.42 15.23 3 14.625 3h-3.25c-.604 0-1.125.42-1.125.938v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-                    </svg>
-                    Löschen
-                  </button>
+                  <TomButton 
+                    @click="editEvent(event); closeDropdown()" 
+                    title="Bearbeiten"
+                    icon="edit"
+                    variant="action"
+                    size="small"
+                  />
+                  <TomButton 
+                    @click="confirmDelete(event); closeDropdown()" 
+                    title="Löschen"
+                    icon="delete"
+                    variant="action-delete"
+                    size="small"
+                  />
                 </div>
               </div>
             </div>
@@ -154,11 +156,12 @@
       <div class="modal" @click.stop>
         <div class="modal-header">
           <h2>{{ showEditModal ? 'Termin bearbeiten' : 'Neuen Termin erstellen' }}</h2>
-          <button @click="closeModal" class="close-btn">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-            </svg>
-          </button>
+          <TomButton 
+            @click="closeModal" 
+            title="Schließen"
+            icon="close"
+            variant="action"
+          />
         </div>
 
         <form @submit.prevent="submitEvent" class="modal-form">
@@ -226,13 +229,18 @@
           </div>
 
           <div class="modal-actions">
-            <button type="button" @click="closeModal" class="btn-secondary">
-              Abbrechen
-            </button>
-            <button type="submit" class="btn-primary" :disabled="isSubmitting">
-              <span v-if="isSubmitting">Speichert...</span>
-              <span v-else>{{ showEditModal ? 'Aktualisieren' : 'Erstellen' }}</span>
-            </button>
+            <TomButton 
+              @click="closeModal" 
+              title="Abbrechen"
+              variant="secondary"
+            />
+            <TomButton 
+              type="submit" 
+              :title="isSubmitting ? 'Speichert...' : showEditModal ? 'Aktualisieren' : 'Erstellen'"
+              icon="save"
+              variant="primary" 
+              :disabled="isSubmitting"
+            />
           </div>
         </form>
       </div>
@@ -249,13 +257,18 @@
           <p class="warning">Diese Aktion kann nicht rückgängig gemacht werden.</p>
         </div>
         <div class="modal-actions">
-          <button @click="showDeleteModal = false" class="btn-secondary">
-            Abbrechen
-          </button>
-          <button @click="deleteEvent" class="btn-danger" :disabled="isSubmitting">
-            <span v-if="isSubmitting">Lösche...</span>
-            <span v-else>Löschen</span>
-          </button>
+          <TomButton 
+            @click="showDeleteModal = false" 
+            title="Abbrechen"
+            variant="secondary"
+          />
+          <TomButton 
+            @click="deleteEvent" 
+            :title="isSubmitting ? 'Lösche...' : 'Löschen'"
+            icon="delete"
+            variant="danger" 
+            :disabled="isSubmitting"
+          />
         </div>
       </div>
     </div>
@@ -267,6 +280,7 @@ import { ref, computed, onMounted } from 'vue'
 import { Timestamp } from 'firebase/firestore'
 import { useEventsStore } from '../stores/events'
 import type { Event } from '../lib/types'
+import TomButton from '../tomponents/TomButton.vue'
 
 const eventsStore = useEventsStore()
 

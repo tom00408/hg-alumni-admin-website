@@ -37,14 +37,14 @@
           {{ authStore.error }}
         </div>
 
-        <button 
+        <TomButton 
           type="submit" 
-          class="login-button"
+          :title="authStore.isLoading ? 'Anmeldung läuft...' : 'Anmelden'"
+          icon="login"
+          variant="primary"
           :disabled="authStore.isLoading || !isFormValid"
-        >
-          <span v-if="authStore.isLoading" class="loading-spinner"></span>
-          {{ authStore.isLoading ? 'Anmeldung läuft...' : 'Anmelden' }}
-        </button>
+          :loading="authStore.isLoading"
+        />
       </form>
 
       <div class="login-footer">
@@ -58,6 +58,7 @@
 import { ref, computed } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import type { LoginCredentials } from '../lib/types'
+import TomButton from '../tomponents/TomButton.vue'
 
 const authStore = useAuthStore()
 
@@ -187,34 +188,6 @@ const handleLogin = async (): Promise<void> => {
   text-align: center;
 }
 
-.login-button {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  padding: 1rem;
-  border-radius: 0.5rem;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-}
-
-.login-button:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
-}
-
-.login-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
 
 .loading-spinner {
   width: 20px;
