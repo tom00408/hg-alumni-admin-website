@@ -147,21 +147,7 @@
             <option value="title-asc">Titel A-Z</option>
             <option value="title-desc">Titel Z-A</option>
           </select>
-          <div class="view-toggle">
-            <TomButton 
-              @click="viewMode = 'grid'" 
-              :variant="viewMode === 'grid' ? 'action-selected' : 'action'"
-              title="Gitteransicht"
-              icon="view-grid"
-            />
           
-            <TomButton 
-              @click="viewMode = 'list'" 
-              :variant="viewMode === 'list' ? 'action-selected' : 'action'"
-              title="Listenansicht"
-              icon="view-list"
-            />
-          </div>
         </div>
       </div>
     </div>
@@ -221,7 +207,7 @@
       </div>
 
       <!-- Grid View -->
-      <div v-else-if="viewMode === 'grid'" class="images-grid">
+      <div class="images-grid">
         <div 
           v-for="image in filteredImages" 
           :key="image.id"
@@ -264,52 +250,9 @@
           </div>
         </div>
       </div>
-
-      <!-- List View -->
-      <div v-else class="images-list">
-        <div 
-          v-for="image in filteredImages" 
-          :key="image.id"
-          class="image-list-item"
-          :class="{ 'selected': selectedImages.includes(image.id!) }"
-        >
-          <div class="list-checkbox">
-            <input 
-              type="checkbox" 
-              :checked="selectedImages.includes(image.id!)"
-              @change="toggleSelection(image.id!)"
-            />
-          </div>
-          <div class="list-thumbnail">
-            <img 
-              :src="image.thumbnailUrl || image.imageUrl" 
-              :alt="image.title || 'Galerie Bild'"
-              @click="openImageModal(image)"
-            />
-          </div>
-          <div class="list-content">
-            <h4>{{ image.title || 'Unbenanntes Bild' }}</h4>
-            <p class="image-url">{{ getFileName(image.imageUrl) }}</p>
-            <p class="image-date">Hochgeladen am {{ formatDate(image.createdAt?.toDate()) }}</p>
-          </div>
-          <div class="list-actions">
-            <TomButton 
-              @click="editImage(image)" 
-              title="Bearbeiten"
-              icon="edit"
-              variant="action"
-            />
-            <TomButton 
-              @click="confirmDelete(image)" 
-              title="Löschen"
-              icon="delete"
-              variant="action-delete"
-            />
-            
-          </div>
-        </div>
-      </div>
     </div>
+
+     
 
     <!-- Upload Modal -->
     <div v-if="showUploadModal" class="modal-overlay" @click="closeUploadModal">
@@ -694,7 +637,6 @@ const galleryStore = useGalleryStore()
 // Reactive state
 const searchQuery = ref('')
 const sortBy = ref('date-desc')
-const viewMode = ref<'grid' | 'list'>('grid')
 const selectedImages = ref<string[]>([])
 
 // Modals
@@ -1872,68 +1814,6 @@ onMounted(() => {
   margin: 0;
 }
 
-/* List View */
-.images-list {
-  background: var(--color-white);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
-  overflow: hidden;
-}
-
-.image-list-item {
-  display: grid;
-  grid-template-columns: auto 80px 1fr auto;
-  gap: var(--spacing-lg);
-  align-items: center;
-  padding: var(--spacing-lg);
-  border-bottom: 1px solid var(--color-gray-200);
-  transition: background-color var(--transition-fast);
-}
-
-.image-list-item:last-child {
-  border-bottom: none;
-}
-
-.image-list-item:hover {
-  background: var(--color-gray-50);
-}
-
-.image-list-item.selected {
-  background: rgba(83, 98, 254, 0.05);
-  border-color: var(--color-primary);
-}
-
-.list-thumbnail {
-  width: 60px;
-  height: 60px;
-  border-radius: var(--radius-md);
-  overflow: hidden;
-}
-
-.list-thumbnail img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  cursor: pointer;
-}
-
-.list-content h4 {
-  color: var(--color-secondary);
-  margin-bottom: var(--spacing-xs);
-}
-
-.image-url {
-  color: var(--color-gray-500);
-  font-size: var(--font-size-sm);
-  font-family: monospace;
-  margin: 0;
-}
-
-.list-actions {
-  display: flex;
-  gap: var(--spacing-sm);
-}
-
 /* Modal Styles */
 .modal-overlay {
   position: fixed;
@@ -2568,18 +2448,9 @@ onMounted(() => {
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   }
   
-  .image-list-item {
-    grid-template-columns: auto 60px 1fr;
-    gap: var(--spacing-md);
-  }
   
-  .list-actions {
-    grid-column: 1 / -1;
-    justify-content: flex-end;
-    padding-top: var(--spacing-md);
-    border-top: 1px solid var(--color-gray-200);
-  }
   
+
   .modal {
     margin: var(--spacing-md);
   }
