@@ -119,13 +119,7 @@
               title="Cover-Bild setzen"
               icon="image"
             />
-            <TomButton 
-              v-if="folder.coverImageId"
-              @click="removeCoverImage(folder)" 
-              variant="action-delete" 
-              title="Cover-Bild entfernen"
-              icon="x"
-            />
+           
             <TomButton 
               @click="confirmDeleteFolder(folder)" 
               variant="action-delete" 
@@ -231,17 +225,16 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, nextTick } from 'vue'
-import { Timestamp } from 'firebase/firestore'
 import { useGalleryStore } from '../stores/gallery'
 import type { GalleryImage, GalleryFolder } from '../lib/types'
 import TomButton from '../tomponents/TomButton.vue'
-import ImageGrid from '../components/ImageGrid.vue'
-import ImageUploadModal from '../components/ImageUploadModal.vue'
-import FolderModal from '../components/FolderModal.vue'
-import ImageEditModal from '../components/ImageEditModal.vue'
-import ImageViewModal from '../components/ImageViewModal.vue'
-import DeleteModal from '../components/DeleteModal.vue'
-import AddImagesModal from '../components/AddImagesModal.vue'
+import ImageGrid from '../components/galerie/ImageGrid.vue'
+import ImageUploadModal from '../components/galerie/ImageUploadModal.vue'
+import FolderModal from '../components/galerie/FolderModal.vue'
+import ImageEditModal from '../components/galerie/ImageEditModal.vue'
+import ImageViewModal from '../components/galerie/ImageViewModal.vue'
+import DeleteModal from '../components/galerie/DeleteModal.vue'
+import AddImagesModal from '../components/galerie/AddImagesModal.vue'
 
 const galleryStore = useGalleryStore()
 

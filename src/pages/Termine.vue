@@ -177,8 +177,8 @@ import { ref, computed, onMounted } from 'vue'
 import { useEventsStore } from '../stores/events'
 import type { Event } from '../lib/types'
 import TomButton from '../tomponents/TomButton.vue'
-import EventFormModal from '../components/EventFormModal.vue'
-import EventDeleteModal from '../components/EventDeleteModal.vue'
+import EventFormModal from '../components/termine/EventFormModal.vue'
+import EventDeleteModal from '../components/termine/EventDeleteModal.vue'
 
 const eventsStore = useEventsStore()
 

@@ -95,8 +95,8 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import type { GalleryImage } from '../lib/types'
-import TomButton from '../tomponents/TomButton.vue'
+import type { GalleryImage } from '../../lib/types'
+import TomButton from '../../tomponents/TomButton.vue'
 
 // Props
 interface Props {

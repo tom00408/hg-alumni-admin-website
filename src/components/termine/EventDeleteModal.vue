@@ -27,8 +27,8 @@
 </template>
 
 <script setup lang="ts">
-import type { Event } from '../lib/types'
-import TomButton from '../tomponents/TomButton.vue'
+import type { Event } from '../../lib/types'
+import TomButton from '../../tomponents/TomButton.vue'
 
 interface Props {
   isVisible: boolean

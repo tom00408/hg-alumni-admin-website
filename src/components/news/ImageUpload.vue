@@ -77,8 +77,8 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { imageUploadService } from '../services/imageUpload'
-import TomButton from '../tomponents/TomButton.vue'
+import { imageUploadService } from '../../services/imageUpload'
+import TomButton from '../../tomponents/TomButton.vue'
 
 interface Props {
   modelValue?: string

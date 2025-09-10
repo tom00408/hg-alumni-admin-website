@@ -97,8 +97,8 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
 import { Timestamp } from 'firebase/firestore'
-import type { Event } from '../lib/types'
-import TomButton from '../tomponents/TomButton.vue'
+import type { Event } from '../../lib/types'
+import TomButton from '../../tomponents/TomButton.vue'
 
 interface Props {
   isVisible: boolean

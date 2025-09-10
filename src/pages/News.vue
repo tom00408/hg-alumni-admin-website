@@ -304,7 +304,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { Timestamp } from 'firebase/firestore'
 import { useNewsStore } from '../stores/news'
 import type { NewsArticle } from '../lib/types'
-import ImageUpload from '../components/ImageUpload.vue'
+import ImageUpload from '../components/news/ImageUpload.vue'
 import TomButton from '../tomponents/TomButton.vue'
 
 const newsStore = useNewsStore()

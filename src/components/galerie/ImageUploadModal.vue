@@ -123,7 +123,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import TomButton from '../tomponents/TomButton.vue'
+import TomButton from '../../tomponents/TomButton.vue'
 
 // Props
 interface Props {

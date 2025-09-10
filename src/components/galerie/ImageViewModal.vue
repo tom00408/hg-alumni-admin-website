@@ -17,8 +17,8 @@
 </template>
 
 <script setup lang="ts">
-import type { GalleryImage } from '../lib/types'
-import TomButton from '../tomponents/TomButton.vue'
+import type { GalleryImage } from '../../lib/types'
+import TomButton from '../../tomponents/TomButton.vue'
 
 // Props
 interface Props {
