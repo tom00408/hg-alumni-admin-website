@@ -67,12 +67,16 @@
             <img 
               v-if="folder.coverImageId && getCoverImage(folder.coverImageId)"
               :src="getCoverImage(folder.coverImageId)?.thumbnailUrl || getCoverImage(folder.coverImageId)?.imageUrl"
-              :alt="folder.name"
+              :alt="`Cover für ${folder.name}`"
               class="folder-cover"
+              @error="handleCoverImageError"
             />
-            <svg v-else xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25H11.69l-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v6.75Z" />
-            </svg>
+            <div v-else class="folder-placeholder">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 0 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25H11.69l-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v6.75Z" />
+              </svg>
+              <span class="placeholder-text">Kein Cover</span>
+            </div>
           </div>
           <div class="folder-info">
             <div v-if="renamingFolder === folder.id" class="folder-rename" @click.stop>
@@ -109,7 +113,19 @@
             </div>
           </div>
           <div class="folder-actions visible" @click.stop>
-            
+            <TomButton 
+              @click="setCoverImage(folder)" 
+              variant="action" 
+              title="Cover-Bild setzen"
+              icon="image"
+            />
+            <TomButton 
+              v-if="folder.coverImageId"
+              @click="removeCoverImage(folder)" 
+              variant="action-delete" 
+              title="Cover-Bild entfernen"
+              icon="x"
+            />
             <TomButton 
               @click="confirmDeleteFolder(folder)" 
               variant="action-delete" 
@@ -127,501 +143,89 @@
       </div>
     </div>
 
-    <!-- Filter und Suche -->
-    <div class="filters-section">
-      <div class="filters-grid">
-        <div class="search-box">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-          </svg>
-          <input 
-            v-model="searchQuery" 
-            type="text" 
-            placeholder="Bilder suchen..."
-          />
-        </div>
-        <div class="view-controls">
-          <select v-model="sortBy" class="filter-select">
-            <option value="date-desc">Neueste zuerst</option>
-            <option value="date-asc">Älteste zuerst</option>
-            <option value="title-asc">Titel A-Z</option>
-            <option value="title-desc">Titel Z-A</option>
-          </select>
-          
-        </div>
-      </div>
-    </div>
-
-    <!-- Stats -->
-    <div class="stats-section">
-      <div class="stats-grid">
-        <div class="stat-item">
-          <span class="stat-number">{{ galleryStore.currentFolder ? galleryStore.filteredImages.length : galleryStore.images.length }}</span>
-          <span class="stat-label">{{ galleryStore.currentFolder ? 'Bilder im Ordner' : 'Bilder gesamt' }}</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-number">{{ filteredImages.length }}</span>
-          <span class="stat-label">Gefilterte Bilder</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-number">{{ selectedImages.length }}</span>
-          <span class="stat-label">Ausgewählt</span>
-        </div>
-      </div>
-      <div v-if="selectedImages.length > 0" class="bulk-actions">
-        <TomButton 
-          @click="confirmBulkDelete" 
-          :title="`${selectedImages.length} ${selectedImages.length === 1 ? 'Bild' : 'Bilder'} löschen`"
-          icon="delete"
-          variant="danger"
-        />
-        <TomButton 
-          @click="clearSelection" 
-          title="Auswahl aufheben"
-          variant="secondary"
-        />
-      </div>
-    </div>
-
-    <!-- Galerie -->
-    <div class="gallery-section">
-      <div v-if="galleryStore.loading" class="loading-state">
-        <div class="spinner"></div>
-        <p>Lade Bilder...</p>
-      </div>
-
-      <div v-else-if="filteredImages.length === 0" class="empty-state">
-        <div class="empty-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
-          </svg>
-        </div>
-        <h3>Keine Bilder gefunden</h3>
-        <p>{{ searchQuery ? 'Keine Bilder entsprechen deiner Suche.' : 'Lade deine ersten Bilder in die Galerie hoch.' }}</p>
-        <TomButton 
-          @click="showUploadModal = true" 
-          title="Bilder hochladen"
-          icon="upload"
-          variant="primary"
-        />
-      </div>
-
-      <!-- Grid View -->
-      <div class="images-grid">
-        <div 
-          v-for="image in filteredImages" 
-          :key="image.id"
-          class="image-card"
-          :class="{ 'selected': selectedImages.includes(image.id!) }"
-        >
-          <div class="image-container">
-            <img 
-              :src="image.thumbnailUrl || image.imageUrl" 
-              :alt="image.title || 'Galerie Bild'"
-              @click="openImageModal(image)"
-              loading="lazy"
-            />
-            <div class="image-overlay">
-              <div class="image-actions">
-                <TomButton 
-                  @click="toggleSelection(image.id!)" 
-                  :variant="selectedImages.includes(image.id!) ? 'action-selected' : 'action'"
-                  title="Auswählen"
-                  icon="check"
-                />
-                <TomButton 
-                  @click="editImage(image)" 
-                  title="Bearbeiten"
-                  icon="edit"
-                  variant="action"
-                />
-                <TomButton 
-                  @click="confirmDelete(image)" 
-                  title="Löschen"
-                  icon="delete"
-                  variant="action-delete"
-                />
-              </div>
-            </div>
-          </div>
-          <div v-if="image.title" class="image-info">
-            <h4>{{ image.title }}</h4>
-            <p class="image-date">{{ formatDate(image.createdAt?.toDate()) }}</p>
-          </div>
-        </div>
-      </div>
-    </div>
+    <!-- Image Grid Component -->
+    <ImageGrid
+      :images="galleryStore.filteredImages"
+      :loading="galleryStore.loading"
+      :total-images="galleryStore.currentFolder ? galleryStore.filteredImages.length : galleryStore.images.length"
+      :stat-label="galleryStore.currentFolder ? 'Bilder im Ordner' : 'Bilder gesamt'"
+      :current-folder-id="galleryStore.currentFolder"
+      ref="imageGridRef"
+      @bulk-delete="confirmBulkDelete"
+      @upload-images="showUploadModal = true"
+      @open-image="openImageModal"
+      @edit-image="editImage"
+      @delete-image="confirmDelete"
+      @set-cover="setImageAsCover"
+    />
 
      
 
     <!-- Upload Modal -->
-    <div v-if="showUploadModal" class="modal-overlay" @click="closeUploadModal">
-      <div class="modal" @click.stop>
-        <div class="modal-header">
-          <h2>Bilder hochladen</h2>
-          <TomButton 
-            @click="closeUploadModal" 
-            variant="action" 
-            title="Schließen"
-            icon="close"
-            />
-        </div>
-
-        <div class="modal-body">
-          <div 
-            class="upload-area"
-            :class="{ 'dragover': isDragOver }"
-            @drop="handleDrop"
-            @dragover.prevent="isDragOver = true"
-            @dragleave="isDragOver = false"
-          >
-            <div class="upload-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
-              </svg>
-            </div>
-            <h3>Bilder hierher ziehen oder klicken zum Auswählen</h3>
-            <p>Unterstützte Formate: JPG, PNG, GIF (max. 10MB pro Bild)</p>
-            <input 
-              ref="fileInput"
-              type="file" 
-              multiple 
-              accept="image/*"
-              @change="handleFileSelect"
-              style="display: none;"
-              />
-              <TomButton 
-                @click="fileInput?.click()" 
-                variant="primary" 
-                title="Dateien auswählen"
-                icon="upload"
-              />
-          </div>
-
-          <div v-if="uploadQueue.length > 0" class="upload-queue">
-            <h4>Hochzuladende Bilder ({{ uploadQueue.length }})</h4>
-            <div class="queue-list">
-              <div v-for="(file, index) in uploadQueue" :key="index" class="queue-item">
-                <img :src="file.preview" :alt="file.name" class="queue-thumbnail" />
-                <div class="queue-info">
-                  <div class="queue-name-input">
-                    <label :for="`title-${index}`" class="queue-label">Titel:</label>
-                    <input 
-                      :id="`title-${index}`"
-                      v-model="uploadQueue[index].title"
-                      type="text" 
-                      class="queue-title-input"
-                      placeholder="Bildtitel..."
-                    />
-                  </div>
-                  <p class="queue-meta">{{ file.name }} • {{ formatFileSize(file.size) }}</p>
-                </div>
-
-                <TomButton 
-                  @click="removeFromQueue(index)" 
-                  variant="action" 
-                  title="Entfernen"
-                  icon="delete"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div v-if="uploadProgress.length > 0" class="upload-progress">
-            <h4>Upload-Fortschritt</h4>
-            <div class="progress-list">
-              <div v-for="progress in uploadProgress" :key="progress.name" class="progress-item" :class="progress.status">
-                <div class="progress-info">
-                  <span class="progress-name">{{ progress.name }}</span>
-                  <div class="progress-status">
-                    <svg v-if="progress.status === 'uploading'" class="progress-icon uploading" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
-                    </svg>
-                    <svg v-else-if="progress.status === 'completed'" class="progress-icon completed" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                    </svg>
-                    <svg v-else-if="progress.status === 'error'" class="progress-icon error" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
-                    </svg>
-                    <span class="progress-percent">{{ progress.percent }}%</span>
-                  </div>
-                </div>
-                <div v-if="progress.status !== 'error'" class="progress-bar">
-                  <div class="progress-fill" :style="{ width: progress.percent + '%' }" :class="progress.status"></div>
-                </div>
-                <div v-if="progress.error" class="progress-error">
-                  {{ progress.error }}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="modal-actions">
-          <TomButton 
-            @click="closeUploadModal" 
-            variant="secondary" 
-            title="Abbrechen"
-            icon="close"
-          />
-          <button 
-            @click="startUpload" 
-            class="btn-primary" 
-            :disabled="uploadQueue.length === 0 || isUploading"
-          >
-            <span v-if="isUploading">Lade hoch...</span>
-            <span v-else>{{ uploadQueue.length }} {{ uploadQueue.length === 1 ? 'Bild' : 'Bilder' }} hochladen</span>
-          </button>
-        </div>
-      </div>
-    </div>
+    <ImageUploadModal
+      :show="showUploadModal"
+      :current-folder="galleryStore.currentFolder"
+      @close="closeUploadModal"
+      @upload-start="handleUploadStart"
+    />
 
     <!-- Image Edit Modal -->
-    <div v-if="showEditModal" class="modal-overlay" @click="closeEditModal">
-      <div class="modal" @click.stop>
-        <div class="modal-header">
-          <h2>Bild bearbeiten</h2>
-          <button @click="closeEditModal" class="close-btn">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-
-        <form @submit.prevent="submitImageEdit" class="modal-form">
-          <div class="image-preview">
-            <img :src="editingImage?.imageUrl" :alt="editingImage?.title || 'Bild'" />
-          </div>
-
-          <div class="form-group">
-            <label for="imageTitle">Titel</label>
-            <input 
-              id="imageTitle"
-              v-model="imageForm.title" 
-              type="text" 
-              placeholder="Optionaler Titel für das Bild"
-            />
-          </div>
-
-          <div class="modal-actions">
-            <button type="button" @click="closeEditModal" class="btn-secondary">
-              Abbrechen
-            </button>
-            <button type="submit" class="btn-primary" :disabled="isSubmitting">
-              <span v-if="isSubmitting">Speichert...</span>
-              <span v-else>Aktualisieren</span>
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+    <ImageEditModal
+      :show="showEditModal"
+      :editing-image="editingImage"
+      :is-submitting="isSubmitting"
+      @close="closeEditModal"
+      @submit="submitImageEdit"
+    />
 
     <!-- Image View Modal -->
-    <div v-if="showImageModal" class="modal-overlay image-modal" @click="closeImageModal">
-      <div class="image-modal-content" @click.stop>
-        <button @click="closeImageModal" class="image-modal-close">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-          </svg>
-        </button>
-        <img :src="viewingImage?.imageUrl" :alt="viewingImage?.title || 'Bild'" />
-        <div v-if="viewingImage?.title" class="image-modal-title">
-          {{ viewingImage.title }}
-        </div>
-      </div>
-    </div>
+    <ImageViewModal
+      :show="showImageModal"
+      :viewing-image="viewingImage"
+      @close="closeImageModal"
+    />
 
     <!-- Folder Modal -->
-    <div v-if="showFolderModal" class="modal-overlay" @click="closeFolderModal">
-      <div class="modal" @click.stop>
-        <div class="modal-header">
-          <h2>{{ editingFolder ? 'Ordner bearbeiten' : 'Neuen Ordner erstellen' }}</h2>
-          <TomButton 
-            @click="closeFolderModal" 
-            variant="action" 
-            title="Schließen"
-            icon="close"
-          />
-        </div>
-
-        <form @submit.prevent="submitFolder" class="modal-form">
-          <div class="form-group">
-            <label for="folderName">Name *</label>
-            <input 
-              id="folderName"
-              v-model="folderForm.name" 
-              type="text" 
-              placeholder="Ordnername"
-              required
-            />
-          </div>
-
-          <div class="form-group">
-            <label for="folderDescription">Beschreibung</label>
-            <textarea 
-              id="folderDescription"
-              v-model="folderForm.description" 
-              placeholder="Optionale Beschreibung des Ordners"
-              rows="3"
-            ></textarea>
-          </div>
-
-          <div class="modal-actions">
-            <TomButton 
-              @click="closeFolderModal" 
-              variant="secondary" 
-              title="Abbrechen"
-              icon="close"
-            />
-            <button type="submit" class="btn-primary" :disabled="isSubmitting || !folderForm.name.trim()">
-              <span v-if="isSubmitting">{{ editingFolder ? 'Aktualisiert...' : 'Erstellt...' }}</span>
-              <span v-else>{{ editingFolder ? 'Aktualisieren' : 'Erstellen' }}</span>
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+    <FolderModal
+      :show="showFolderModal"
+      :editing-folder="editingFolder"
+      :is-submitting="isSubmitting"
+      :available-images="galleryStore.images"
+      @close="closeFolderModal"
+      @submit="submitFolder"
+    />
 
     <!-- Delete Confirmation Modal -->
-    <div v-if="showDeleteModal" class="modal-overlay" @click="showDeleteModal = false">
-      <div class="modal small" @click.stop>
-        <div class="modal-header">
-          <h2>{{ imagesToDelete.length > 1 ? 'Bilder löschen' : 'Bild löschen' }}</h2>
-        </div>
-        <div class="modal-body">
-          <p v-if="imagesToDelete.length === 1">
-            Möchtest du das Bild wirklich löschen?
-          </p>
-          <p v-else>
-            Möchtest du wirklich {{ imagesToDelete.length }} Bilder löschen?
-          </p>
-          <p class="warning">Diese Aktion kann nicht rückgängig gemacht werden.</p>
-        </div>
-        <div class="modal-actions">
-          <button @click="showDeleteModal = false" class="btn-secondary">
-            Abbrechen
-          </button>
-          <button @click="deleteImages" class="btn-danger" :disabled="isSubmitting">
-            <span v-if="isSubmitting">Lösche...</span>
-            <span v-else>Löschen</span>
-          </button>
-        </div>
-      </div>
-    </div>
+    <DeleteModal
+      :show="showDeleteModal"
+      :title="imagesToDelete.length > 1 ? 'Bilder löschen' : 'Bild löschen'"
+      :message="imagesToDelete.length === 1 ? 'Möchtest du das Bild wirklich löschen?' : `Möchtest du wirklich ${imagesToDelete.length} Bilder löschen?`"
+      :is-submitting="isSubmitting"
+      @close="showDeleteModal = false"
+      @confirm="deleteImages"
+    />
 
     <!-- Add Images to Folder Modal -->
-    <div v-if="showAddImagesModal" class="modal-overlay" @click="closeAddImagesModal">
-      <div class="modal large" @click.stop>
-        <div class="modal-header">
-          <h2>Bilder zu "{{ galleryStore.currentFolderData?.name }}" hinzufügen</h2>
-          <button @click="closeAddImagesModal" class="close-btn">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-
-        <div class="modal-body">
-          <!-- Suchfeld für verfügbare Bilder -->
-          <div class="add-images-search">
-            <div class="search-box">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-              </svg>
-              <input 
-                v-model="addImagesSearchQuery" 
-                type="text" 
-                placeholder="Verfügbare Bilder suchen..."
-              />
-            </div>
-          </div>
-
-          <!-- Statistiken -->
-          <div class="add-images-stats">
-            <span class="stat">{{ availableImages.length }} verfügbare Bilder</span>
-            <span class="stat">{{ selectedImagesToAdd.length }} ausgewählt</span>
-          </div>
-
-          <!-- Verfügbare Bilder Grid -->
-          <div class="add-images-content">
-            <div v-if="availableImages.length === 0" class="empty-state">
-              <div class="empty-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
-                </svg>
-              </div>
-              <h3>Keine verfügbaren Bilder</h3>
-              <p>Alle Bilder sind bereits in Ordnern organisiert oder befinden sich bereits in diesem Ordner.</p>
-            </div>
-
-            <div v-else class="add-images-grid">
-              <div 
-                v-for="image in filteredAvailableImages" 
-                :key="image.id"
-                class="add-image-item"
-                :class="{ 'selected': selectedImagesToAdd.includes(image.id!) }"
-                @click="toggleImageSelection(image.id!)"
-              >
-                <div class="add-image-checkbox">
-                  <input 
-                    type="checkbox" 
-                    :checked="selectedImagesToAdd.includes(image.id!)"
-                    @click.stop
-                  />
-                </div>
-                <img 
-                  :src="image.thumbnailUrl || image.imageUrl" 
-                  :alt="image.title || 'Bild'"
-                  class="add-image-thumbnail"
-                />
-                <div class="add-image-info">
-                  <h4>{{ image.title || 'Unbenanntes Bild' }}</h4>
-                  <p class="add-image-date">{{ formatDate(image.createdAt?.toDate()) }}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="modal-actions">
-          <button @click="closeAddImagesModal" class="btn-secondary">
-            Abbrechen
-          </button>
-          <button 
-            @click="addSelectedImagesToFolder" 
-            class="btn-primary" 
-            :disabled="selectedImagesToAdd.length === 0 || isSubmitting"
-          >
-            <span v-if="isSubmitting">Füge hinzu...</span>
-            <span v-else>{{ selectedImagesToAdd.length }} {{ selectedImagesToAdd.length === 1 ? 'Bild' : 'Bilder' }} hinzufügen</span>
-          </button>
-        </div>
-      </div>
-    </div>
+    <AddImagesModal
+      :show="showAddImagesModal"
+      :folder-name="galleryStore.currentFolderData?.name || ''"
+      :available-images="availableImages"
+      :is-submitting="isSubmitting"
+      @close="closeAddImagesModal"
+      @add-images="addSelectedImagesToFolder"
+    />
 
     <!-- Delete Folder Confirmation Modal -->
-    <div v-if="showDeleteFolderModal" class="modal-overlay" @click="showDeleteFolderModal = false">
-      <div class="modal small" @click.stop>
-        <div class="modal-header">
-          <h2>Ordner löschen</h2>
-        </div>
-        <div class="modal-body">
-          <p>
-            Möchtest du den Ordner "{{ folderToDelete?.name }}" wirklich löschen?
-          </p>
-          <p class="warning">Alle Bilder im Ordner werden in die Hauptgalerie verschoben. Diese Aktion kann nicht rückgängig gemacht werden.</p>
-        </div>
-        <div class="modal-actions">
-          <button @click="showDeleteFolderModal = false" class="btn-secondary">
-            Abbrechen
-          </button>
-          <button @click="deleteFolderConfirmed" class="btn-danger" :disabled="isSubmitting">
-            <span v-if="isSubmitting">Lösche...</span>
-            <span v-else>Ordner löschen</span>
-          </button>
-        </div>
-      </div>
-    </div>
+    <DeleteModal
+      :show="showDeleteFolderModal"
+      title="Ordner löschen"
+      :message="folderToDelete ? 'Möchtest du den Ordner ' + folderToDelete.name + ' wirklich löschen?' : 'Ordner löschen'"
+      warning="Alle Bilder im Ordner werden in die Hauptgalerie verschoben. Diese Aktion kann nicht rückgängig gemacht werden."
+      confirm-text="Ordner löschen"
+      :is-submitting="isSubmitting"
+      @close="showDeleteFolderModal = false"
+      @confirm="deleteFolderConfirmed"
+    />
   </div>
 </template>
 
@@ -631,13 +235,18 @@ import { Timestamp } from 'firebase/firestore'
 import { useGalleryStore } from '../stores/gallery'
 import type { GalleryImage, GalleryFolder } from '../lib/types'
 import TomButton from '../tomponents/TomButton.vue'
+import ImageGrid from '../components/ImageGrid.vue'
+import ImageUploadModal from '../components/ImageUploadModal.vue'
+import FolderModal from '../components/FolderModal.vue'
+import ImageEditModal from '../components/ImageEditModal.vue'
+import ImageViewModal from '../components/ImageViewModal.vue'
+import DeleteModal from '../components/DeleteModal.vue'
+import AddImagesModal from '../components/AddImagesModal.vue'
 
 const galleryStore = useGalleryStore()
 
 // Reactive state
-const searchQuery = ref('')
-const sortBy = ref('date-desc')
-const selectedImages = ref<string[]>([])
+const imageGridRef = ref<InstanceType<typeof ImageGrid>>()
 
 // Modals
 const showUploadModal = ref(false)
@@ -648,11 +257,7 @@ const showFolderModal = ref(false)
 const showDeleteFolderModal = ref(false)
 const showAddImagesModal = ref(false)
 
-// Upload state
-const uploadQueue = ref<Array<{ file: File; name: string; size: number; preview: string; title: string }>>([])
-const uploadProgress = ref<Array<{ name: string; percent: number; status: 'pending' | 'uploading' | 'completed' | 'error'; error?: string }>>([])
-const isUploading = ref(false)
-const isDragOver = ref(false)
+// Upload state - moved to ImageUploadModal component
 
 // Edit state
 const editingImage = ref<GalleryImage | null>(null)
@@ -662,18 +267,9 @@ const editingFolder = ref<GalleryFolder | null>(null)
 const folderToDelete = ref<GalleryFolder | null>(null)
 const isSubmitting = ref(false)
 
-const imageForm = ref({
-  title: ''
-})
+// Form state - moved to respective modal components
 
-const folderForm = ref({
-  name: '',
-  description: ''
-})
-
-// Add images to folder state
-const addImagesSearchQuery = ref('')
-const selectedImagesToAdd = ref<string[]>([])
+// Add images to folder state - moved to AddImagesModal component
 
 // Inline rename state
 const renamingFolder = ref<string | null>(null)
@@ -681,40 +277,11 @@ const renameValue = ref('')
 const renameInput = ref<HTMLInputElement>()
 const breadcrumbRenameInput = ref<HTMLInputElement>()
 
-// File input ref
-const fileInput = ref<HTMLInputElement>()
+// File input ref - moved to ImageUploadModal component
 
-// Computed
-const filteredImages = computed(() => {
-  let images = [...galleryStore.filteredImages] // Verwende den Store's filteredImages
+// Computed - removed as it's now handled by ImageGrid component
 
-  // Suche anwenden
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase()
-    images = images.filter(image => 
-      image.title?.toLowerCase().includes(query) ||
-      image.imageUrl.toLowerCase().includes(query)
-    )
-  }
-
-  // Sortierung anwenden
-  images.sort((a, b) => {
-    switch (sortBy.value) {
-      case 'date-asc':
-        return (a.createdAt?.toMillis() || 0) - (b.createdAt?.toMillis() || 0)
-      case 'title-asc':
-        return (a.title || '').localeCompare(b.title || '')
-      case 'title-desc':
-        return (b.title || '').localeCompare(a.title || '')
-      default: // date-desc
-        return (b.createdAt?.toMillis() || 0) - (a.createdAt?.toMillis() || 0)
-    }
-  })
-
-  return images
-})
-
-// Computed für Add Images Modal
+// Computed für Add Images Modal - moved to AddImagesModal component
 const availableImages = computed(() => {
   // Zeige alle Bilder die NICHT im aktuellen Ordner sind
   return galleryStore.images.filter(image => {
@@ -722,213 +289,45 @@ const availableImages = computed(() => {
   })
 })
 
-const filteredAvailableImages = computed(() => {
-  let images = [...availableImages.value]
+// Methods - selection methods moved to ImageGrid component
 
-  // Suche anwenden
-  if (addImagesSearchQuery.value) {
-    const query = addImagesSearchQuery.value.toLowerCase()
-    images = images.filter(image => 
-      image.title?.toLowerCase().includes(query) ||
-      image.imageUrl.toLowerCase().includes(query)
-    )
-  }
+// Upload methods - moved to ImageUploadModal component
 
-  // Nach Datum sortieren (neueste zuerst)
-  images.sort((a, b) => (b.createdAt?.toMillis() || 0) - (a.createdAt?.toMillis() || 0))
-
-  return images
-})
-
-// Methods
-const toggleSelection = (imageId: string) => {
-  const index = selectedImages.value.indexOf(imageId)
-  if (index > -1) {
-    selectedImages.value.splice(index, 1)
-  } else {
-    selectedImages.value.push(imageId)
-  }
-}
-
-const clearSelection = () => {
-  selectedImages.value = []
-}
-
-const handleFileSelect = (event: Event) => {
-  const target = event.target as HTMLInputElement
-  if (target.files) {
-    addFilesToQueue(Array.from(target.files))
-  }
-}
-
-const handleDrop = (event: DragEvent) => {
-  event.preventDefault()
-  isDragOver.value = false
-  
-  if (event.dataTransfer?.files) {
-    addFilesToQueue(Array.from(event.dataTransfer.files))
-  }
-}
-
-const addFilesToQueue = async (files: File[]) => {
-  for (const file of files) {
-    if (file.type.startsWith('image/') && file.size <= 10 * 1024 * 1024) { // 10MB limit
-      try {
-        // Komprimiere das Bild wenn es zu groß ist
-        const processedFile = await processImageFile(file)
-        const reader = new FileReader()
-        
-        reader.onload = (e) => {
-          const defaultTitle = file.name.replace(/\.[^/.]+$/, '') // Dateiname ohne Extension
-          uploadQueue.value.push({
-            file: processedFile,
-            name: processedFile.name,
-            size: processedFile.size,
-            preview: e.target?.result as string,
-            title: defaultTitle
-          })
-        }
-        reader.readAsDataURL(processedFile)
-      } catch (error) {
-        console.error('Fehler beim Verarbeiten der Datei:', file.name, error)
-      }
-    }
-  }
-}
-
-// Bildverarbeitung und Komprimierung
-const processImageFile = async (file: File): Promise<File> => {
-  return new Promise((resolve, reject) => {
-    const maxSize = 800 // Maximale Breite/Höhe
-    const quality = 0.8 // JPEG Qualität
-    const maxFileSize = 1024 * 1024 // 1MB
-    
-    // Wenn die Datei bereits klein genug ist, direkt zurückgeben
-    if (file.size <= maxFileSize) {
-      resolve(file)
-      return
-    }
-    
-    const canvas = document.createElement('canvas')
-    const ctx = canvas.getContext('2d')
-    const img = new Image()
-    
-    img.onload = () => {
-      // Berechne neue Dimensionen
-      let { width, height } = img
-      
-      if (width > maxSize || height > maxSize) {
-        const ratio = Math.min(maxSize / width, maxSize / height)
-        width = Math.round(width * ratio)
-        height = Math.round(height * ratio)
-      }
-      
-      canvas.width = width
-      canvas.height = height
-      
-      // Zeichne das Bild
-      ctx?.drawImage(img, 0, 0, width, height)
-      
-      // Konvertiere zu Blob
-      canvas.toBlob((blob) => {
-        if (blob) {
-          const compressedFile = new File([blob], file.name, {
-            type: 'image/jpeg',
-            lastModified: Date.now()
-          })
-          resolve(compressedFile)
-        } else {
-          reject(new Error('Komprimierung fehlgeschlagen'))
-        }
-      }, 'image/jpeg', quality)
-    }
-    
-    img.onerror = () => reject(new Error('Fehler beim Laden des Bildes'))
-    img.src = URL.createObjectURL(file)
-  })
-}
-
-const removeFromQueue = (index: number) => {
-  uploadQueue.value.splice(index, 1)
-}
-
-const startUpload = async () => {
-  if (uploadQueue.value.length === 0) return
-  
-  isUploading.value = true
-  uploadProgress.value = uploadQueue.value.map(item => ({
-    name: item.name,
-    percent: 0,
-    status: 'pending' as const
-  }))
-
+// New upload handler for ImageUploadModal
+const handleUploadStart = async (uploadData: { queue: any[], currentFolder: string | null, onProgress: (index: number, progress: number, status: string, error?: string) => void }) => {
   try {
-    for (let i = 0; i < uploadQueue.value.length; i++) {
-      const item = uploadQueue.value[i]
-      const progressItem = uploadProgress.value[i]
+    for (let i = 0; i < uploadData.queue.length; i++) {
+      const item = uploadData.queue[i]
       
       try {
-        progressItem.status = 'uploading'
-        progressItem.percent = 10
+        uploadData.onProgress(i, 10, 'uploading')
         
-        // Echtes Firebase Upload über den Gallery Store (mit aktuellem Ordner falls vorhanden)
-        await galleryStore.uploadImage(item.file, item.title, galleryStore.currentFolder || undefined)
+        // Echtes Firebase Upload über den Gallery Store
+        await galleryStore.uploadImage(item.file, item.title, uploadData.currentFolder || undefined)
         
-        progressItem.percent = 100
-        progressItem.status = 'completed'
+        uploadData.onProgress(i, 100, 'completed')
       } catch (error) {
         console.error(`Upload fehlgeschlagen für ${item.name}:`, error)
-        progressItem.status = 'error'
-        progressItem.error = error instanceof Error ? error.message : 'Unbekannter Fehler'
+        uploadData.onProgress(i, 0, 'error', error instanceof Error ? error.message : 'Unbekannter Fehler')
       }
-    }
-
-    // Prüfe ob alle erfolgreich waren
-    const allCompleted = uploadProgress.value.every(p => p.status === 'completed')
-    const hasErrors = uploadProgress.value.some(p => p.status === 'error')
-    
-    if (allCompleted) {
-      // Alle erfolgreich - Modal schließen
-      setTimeout(() => {
-        uploadQueue.value = []
-        uploadProgress.value = []
-        closeUploadModal()
-      }, 1000)
-    } else if (hasErrors) {
-      // Einige Fehler - Benutzer über Ergebnisse informieren
-      const errorCount = uploadProgress.value.filter(p => p.status === 'error').length
-      const successCount = uploadProgress.value.filter(p => p.status === 'completed').length
-      
-      console.log(`Upload abgeschlossen: ${successCount} erfolgreich, ${errorCount} Fehler`)
-      
-      // Nach 3 Sekunden nur die erfolgreichen aus der Queue entfernen
-      setTimeout(() => {
-        uploadQueue.value = uploadQueue.value.filter((_, index) => 
-          uploadProgress.value[index].status === 'error'
-        )
-        uploadProgress.value = uploadProgress.value.filter(p => p.status === 'error')
-      }, 3000)
     }
   } catch (error) {
     console.error('Upload-Prozess fehlgeschlagen:', error)
-  } finally {
-    isUploading.value = false
   }
 }
 
 const editImage = (image: GalleryImage) => {
   editingImage.value = image
-  imageForm.value.title = image.title || ''
   showEditModal.value = true
 }
 
-const submitImageEdit = async () => {
+const submitImageEdit = async (data: { title: string }) => {
   if (!editingImage.value) return
   
   isSubmitting.value = true
   try {
     await galleryStore.updateImage(editingImage.value.id!, {
-      title: imageForm.value.title || undefined
+      title: data.title || undefined
     })
     closeEditModal()
   } catch (error) {
@@ -949,8 +348,10 @@ const confirmDelete = (image: GalleryImage) => {
 }
 
 const confirmBulkDelete = () => {
-  imagesToDelete.value = [...selectedImages.value]
+  if (imageGridRef.value) {
+    imagesToDelete.value = [...imageGridRef.value.selectedImages]
   showDeleteModal.value = true
+  }
 }
 
 const deleteImages = async () => {
@@ -960,10 +361,10 @@ const deleteImages = async () => {
       await galleryStore.deleteImage(imageId)
     }
     
-    // Entferne gelöschte Bilder aus Auswahl
-    selectedImages.value = selectedImages.value.filter(id => 
-      !imagesToDelete.value.includes(id)
-    )
+    // Entferne gelöschte Bilder aus Auswahl in ImageGrid
+    if (imageGridRef.value) {
+      imageGridRef.value.clearSelection()
+    }
     
     showDeleteModal.value = false
     imagesToDelete.value = []
@@ -976,15 +377,11 @@ const deleteImages = async () => {
 
 const closeUploadModal = () => {
   showUploadModal.value = false
-  uploadQueue.value = []
-  uploadProgress.value = []
-  isDragOver.value = false
 }
 
 const closeEditModal = () => {
   showEditModal.value = false
   editingImage.value = null
-  imageForm.value.title = ''
 }
 
 const closeImageModal = () => {
@@ -992,26 +389,7 @@ const closeImageModal = () => {
   viewingImage.value = null
 }
 
-// Helper functions
-const formatDate = (date?: Date) => {
-  if (!date) return 'Unbekannt'
-  return date.toLocaleDateString('de-DE', { 
-    day: '2-digit', 
-    month: '2-digit', 
-    year: 'numeric' 
-  })
-}
-
-const formatFileSize = (bytes: number) => {
-  const sizes = ['Bytes', 'KB', 'MB', 'GB']
-  if (bytes === 0) return '0 Bytes'
-  const i = Math.floor(Math.log(bytes) / Math.log(1024))
-  return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i]
-}
-
-const getFileName = (url: string) => {
-  return url.split('/').pop() || url
-}
+// Helper functions - moved to respective modal components
 
 // Folder helpers
 const getCoverImage = (imageId: string) => {
@@ -1025,37 +403,84 @@ const getImagesInFolderCount = (folderId: string) => {
 // Folder methods
 const editFolder = (folder: GalleryFolder) => {
   editingFolder.value = folder
-  folderForm.value.name = folder.name
-  folderForm.value.description = folder.description || ''
   showFolderModal.value = true
 }
 
-const submitFolder = async () => {
-  if (!folderForm.value.name.trim()) return
+const setCoverImage = (folder: GalleryFolder) => {
+  editingFolder.value = folder
+  showFolderModal.value = true
+}
+
+const setImageAsCover = async (image: GalleryImage) => {
+  if (!galleryStore.currentFolder || !image.id) return
+  
+  isSubmitting.value = true
+  try {
+    await galleryStore.updateFolder(galleryStore.currentFolder, {
+      coverImageId: image.id
+    })
+  } catch (error) {
+    console.error('Fehler beim Setzen des Cover-Bildes:', error)
+  } finally {
+    isSubmitting.value = false
+  }
+}
+
+const removeCoverImage = async (folder: GalleryFolder) => {
+  if (!folder.id) return
+  
+  isSubmitting.value = true
+  try {
+    await galleryStore.updateFolder(folder.id, {
+      coverImageId: undefined
+    })
+  } catch (error) {
+    console.error('Fehler beim Entfernen des Cover-Bildes:', error)
+  } finally {
+    isSubmitting.value = false
+  }
+}
+
+const handleCoverImageError = (event: Event) => {
+  const img = event.target as HTMLImageElement
+  img.style.display = 'none'
+  // Das placeholder div wird automatisch angezeigt, da v-else verwendet wird
+}
+
+const submitFolder = async (data: { name: string; description: string; coverImageId?: string | null }) => {
+  if (!data.name.trim()) return
   
   isSubmitting.value = true
   try {
     if (editingFolder.value) {
       // Update existing folder
       const updateData: Partial<GalleryFolder> = {
-        name: folderForm.value.name.trim()
+        name: data.name.trim()
       }
       
-      if (folderForm.value.description.trim()) {
-        updateData.description = folderForm.value.description.trim()
+      if (data.description.trim()) {
+        updateData.description = data.description.trim()
       } else {
         updateData.description = ''  // Leerer String statt undefined
+      }
+      
+      if (data.coverImageId !== undefined) {
+        updateData.coverImageId = data.coverImageId || undefined
       }
       
       await galleryStore.updateFolder(editingFolder.value.id!, updateData)
     } else {
       // Create new folder
       const folderData: Omit<GalleryFolder, 'id'> = {
-        name: folderForm.value.name.trim()
+        name: data.name.trim()
       }
       
-      if (folderForm.value.description.trim()) {
-        folderData.description = folderForm.value.description.trim()
+      if (data.description.trim()) {
+        folderData.description = data.description.trim()
+      }
+      
+      if (data.coverImageId) {
+        folderData.coverImageId = data.coverImageId
       }
       
       await galleryStore.createFolder(folderData)
@@ -1097,28 +522,18 @@ const deleteFolderConfirmed = async () => {
 const closeFolderModal = () => {
   showFolderModal.value = false
   editingFolder.value = null
-  folderForm.value.name = ''
-  folderForm.value.description = ''
 }
 
-// Add Images to Folder methods
-const toggleImageSelection = (imageId: string) => {
-  const index = selectedImagesToAdd.value.indexOf(imageId)
-  if (index > -1) {
-    selectedImagesToAdd.value.splice(index, 1)
-  } else {
-    selectedImagesToAdd.value.push(imageId)
-  }
-}
+// Add Images to Folder methods - moved to AddImagesModal component
 
-const addSelectedImagesToFolder = async () => {
-  if (!galleryStore.currentFolder || selectedImagesToAdd.value.length === 0) return
+const addSelectedImagesToFolder = async (imageIds: string[]) => {
+  if (!galleryStore.currentFolder || imageIds.length === 0) return
   
   isSubmitting.value = true
   try {
     // Verschiebe alle ausgewählten Bilder in den aktuellen Ordner
     await galleryStore.moveImagesBetweenFolders(
-      selectedImagesToAdd.value,
+      imageIds,
       null, // von unorganisiert oder anderen Ordnern
       galleryStore.currentFolder
     )
@@ -1133,8 +548,6 @@ const addSelectedImagesToFolder = async () => {
 
 const closeAddImagesModal = () => {
   showAddImagesModal.value = false
-  selectedImagesToAdd.value = []
-  addImagesSearchQuery.value = ''
 }
 
 // Inline rename methods
@@ -1363,24 +776,51 @@ onMounted(() => {
 }
 
 .folder-icon {
-  width: 60px;
-  height: 60px;
+  width: 80px;
+  height: 80px;
   margin-bottom: var(--spacing-md);
   position: relative;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   overflow: hidden;
-}
-
-.folder-icon svg {
-  width: 100%;
-  height: 100%;
-  color: var(--color-primary);
+  border: 2px solid var(--color-gray-200);
+  background: var(--color-gray-50);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .folder-cover {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform var(--transition-normal);
+}
+
+.folder-card:hover .folder-cover {
+  transform: scale(1.05);
+}
+
+.folder-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: var(--color-gray-400);
+}
+
+.folder-placeholder svg {
+  width: 40px;
+  height: 40px;
+  margin-bottom: var(--spacing-xs);
+}
+
+.placeholder-text {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  text-align: center;
+  color: var(--color-gray-500);
 }
 
 .folder-info h3 {
@@ -1517,302 +957,7 @@ onMounted(() => {
   background: rgba(255, 255, 255, 0.7);
 }
 
-/* Filter Section */
-.filters-section {
-  margin-bottom: var(--spacing-xl);
-}
-
-.filters-grid {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: var(--spacing-lg);
-  align-items: center;
-}
-
-.search-box {
-  position: relative;
-  max-width: 400px;
-}
-
-.search-box svg {
-  position: absolute;
-  left: var(--spacing-md);
-  top: 50%;
-  transform: translateY(-50%);
-  width: 20px;
-  height: 20px;
-  color: var(--color-gray-400);
-}
-
-.search-box input {
-  width: 100%;
-  padding: var(--spacing-md) var(--spacing-md) var(--spacing-md) 3rem;
-  border: 1px solid var(--color-gray-300);
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-base);
-}
-
-.view-controls {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-}
-
-.filter-select {
-  padding: var(--spacing-md) var(--spacing-lg);
-  border: 1px solid var(--color-gray-300);
-  border-radius: var(--radius-md);
-  background: var(--color-white);
-  font-size: var(--font-size-base);
-}
-
-.view-toggle {
-  display: flex;
-  border: 1px solid var(--color-gray-300);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-}
-
-.view-btn {
-  padding: var(--spacing-md);
-  border: none;
-  background: var(--color-white);
-  color: var(--color-gray-600);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.view-btn:hover {
-  background: var(--color-gray-100);
-}
-
-.view-btn.active {
-  background: var(--color-primary);
-  color: var(--color-white);
-}
-
-.view-btn svg {
-  width: 20px;
-  height: 20px;
-}
-
-/* Stats Section */
-.stats-section {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--spacing-xl);
-  padding: var(--spacing-lg);
-  background: var(--color-white);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-}
-
-.stats-grid {
-  display: flex;
-  gap: var(--spacing-xl);
-}
-
-.stat-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-}
-
-.stat-number {
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--color-primary);
-}
-
-.stat-label {
-  font-size: var(--font-size-sm);
-  color: var(--color-gray-600);
-}
-
-.bulk-actions {
-  display: flex;
-  gap: var(--spacing-md);
-}
-
-.btn-danger svg {
-  width: 16px;
-  height: 16px;
-}
-
-/* Loading & Empty States */
-.loading-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: var(--spacing-2xl);
-  text-align: center;
-}
-
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid var(--color-gray-200);
-  border-top: 3px solid var(--color-primary);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: var(--spacing-lg);
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: var(--spacing-2xl);
-  text-align: center;
-}
-
-.empty-icon {
-  width: 80px;
-  height: 80px;
-  color: var(--color-gray-300);
-  margin-bottom: var(--spacing-lg);
-}
-
-.empty-icon svg {
-  width: 100%;
-  height: 100%;
-}
-
-.empty-state h3 {
-  color: var(--color-secondary);
-  margin-bottom: var(--spacing-md);
-}
-
-.empty-state p {
-  color: var(--color-gray-600);
-  margin-bottom: var(--spacing-xl);
-  max-width: 400px;
-}
-
-/* Grid View */
-.images-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: var(--spacing-lg);
-}
-
-.image-card {
-  background: var(--color-white);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  box-shadow: var(--shadow-md);
-  transition: all var(--transition-normal);
-  border: 2px solid transparent;
-}
-
-.image-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
-}
-
-.image-card.selected {
-  border-color: var(--color-primary);
-}
-
-.image-container {
-  position: relative;
-  aspect-ratio: 1;
-  overflow: hidden;
-}
-
-.image-container img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  cursor: pointer;
-  transition: transform var(--transition-normal);
-}
-
-.image-card:hover .image-container img {
-  transform: scale(1.05);
-}
-
-.image-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity var(--transition-normal);
-}
-
-.image-card:hover .image-overlay {
-  opacity: 1;
-}
-
-.image-actions {
-  display: flex;
-  gap: var(--spacing-sm);
-}
-
-.action-btn {
-  width: 40px;
-  height: 40px;
-  border: none;
-  border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.9);
-  color: var(--color-gray-700);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.action-btn:hover {
-  background: var(--color-white);
-  transform: scale(1.1);
-}
-
-.action-btn.selected {
-  background: var(--color-primary);
-  color: var(--color-white);
-}
-
-.action-btn.delete:hover {
-  background: var(--color-error);
-  color: var(--color-white);
-}
-
-.action-btn svg {
-  width: 20px;
-  height: 20px;
-}
-
-.image-info {
-  padding: var(--spacing-md);
-}
-
-.image-info h4 {
-  color: var(--color-secondary);
-  margin-bottom: var(--spacing-xs);
-  font-size: var(--font-size-sm);
-}
-
-.image-date {
-  color: var(--color-gray-500);
-  font-size: var(--font-size-xs);
-  margin: 0;
-}
+/* Image Grid styles moved to ImageGrid.vue component */
 
 /* Modal Styles */
 .modal-overlay {
@@ -2426,27 +1571,7 @@ onMounted(() => {
     justify-content: center;
   }
   
-  .filters-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .view-controls {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  
-  .stats-section {
-    flex-direction: column;
-    gap: var(--spacing-lg);
-  }
-  
-  .stats-grid {
-    justify-content: center;
-  }
-  
-  .images-grid {
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  }
+  /* Image Grid responsive styles moved to ImageGrid.vue component */
   
   
   
@@ -2456,10 +1581,6 @@ onMounted(() => {
   }
   
   .modal-actions {
-    flex-direction: column;
-  }
-  
-  .bulk-actions {
     flex-direction: column;
   }
   
