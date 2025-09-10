@@ -13,8 +13,7 @@
     "preview": "vite preview",
     "deploy": "tsx scripts/deploy.ts",
     "check:types": "vue-tsc -b",
-    "check:sizes": "tsx scripts/check-file-sizes.ts",
-    "test:firebase": "tsx scripts/test-firebase.ts"
+    "check:sizes": "tsx scripts/check-file-sizes.ts"
   },
   "dependencies": {
     "dotenv": "^17.2.2",
