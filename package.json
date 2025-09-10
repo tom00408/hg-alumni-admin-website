@@ -12,7 +12,9 @@
     "postbuild": "cp .htaccess dist/.htaccess",
     "preview": "vite preview",
     "deploy": "tsx scripts/deploy.ts",
-    "type-check": "vue-tsc -b"
+    "check:types": "vue-tsc -b",
+    "check:sizes": "tsx scripts/check-file-sizes.ts",
+    "test:firebase": "tsx scripts/test-firebase.ts"
   },
   "dependencies": {
     "dotenv": "^17.2.2",
