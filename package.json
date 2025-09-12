@@ -13,7 +13,8 @@
     "preview": "vite preview",
     "deploy": "tsx scripts/deploy.ts",
     "check:types": "vue-tsc -b",
-    "check:sizes": "tsx scripts/check-file-sizes.ts"
+    "check:sizes": "tsx scripts/check-file-sizes.ts",
+    "check:css": "tsx scripts/check-css.ts"
   },
   "dependencies": {
     "dotenv": "^17.2.2",
@@ -28,6 +29,7 @@
     "@types/node": "^22.16.5",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vue/tsconfig": "^0.7.0",
+    "fast-glob": "^3.3.3",
     "npm-run-all2": "^8.0.4",
     "ssh2-sftp-client": "^12.0.1",
     "typescript": "~5.8.0",

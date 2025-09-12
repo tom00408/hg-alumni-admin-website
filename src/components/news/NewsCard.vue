@@ -61,7 +61,7 @@
 <script setup lang="ts">
 import { Timestamp } from 'firebase/firestore'
 import HgCard from './HgCard.vue'
-import type { NewsArticle } from '../lib/types'
+import type { NewsArticle } from '../../lib/types'
 import TomButton from '../tomponents/TomButton.vue'
 
 interface Props {
