@@ -139,6 +139,7 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<{
   'close': []
   'upload-complete': []
+  'upload-start': [data: { queue: any[], currentFolder: string | null, onProgress: (index: number, progress: number, status: 'uploading' | 'completed' | 'error', error?: string) => void }]
 }>()
 
 // Reactive state

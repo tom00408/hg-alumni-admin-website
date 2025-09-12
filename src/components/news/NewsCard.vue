@@ -40,21 +40,19 @@
       </p>
     </div>
 
-    <template #footer>
-      <div class="news-card__actions">
-        <TomButton 
-          @click="$emit('read-more', article)"
-          title="Mehr lesen"
-          variant="primary"
-        />
-        <TomButton 
-          @click="$emit('share', article)"
-          title="Artikel teilen"
-          icon="share"
-          variant="action"
-        />
-      </div>
-    </template>
+    <div class="news-card__actions">
+      <TomButton 
+        @click="$emit('read-more', article)"
+        title="Mehr lesen"
+        variant="primary"
+      />
+      <TomButton 
+        @click="$emit('share', article)"
+        title="Artikel teilen"
+        icon="share"
+        variant="action"
+      />
+    </div>
   </HgCard>
 </template>
 

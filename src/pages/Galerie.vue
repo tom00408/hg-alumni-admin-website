@@ -287,7 +287,7 @@ const availableImages = computed(() => {
 // Upload methods - moved to ImageUploadModal component
 
 // New upload handler for ImageUploadModal
-const handleUploadStart = async (uploadData: { queue: any[], currentFolder: string | null, onProgress: (index: number, progress: number, status: string, error?: string) => void }) => {
+const handleUploadStart = async (uploadData: { queue: any[], currentFolder: string | null, onProgress: (index: number, progress: number, status: 'uploading' | 'completed' | 'error', error?: string) => void }) => {
   try {
     for (let i = 0; i < uploadData.queue.length; i++) {
       const item = uploadData.queue[i]

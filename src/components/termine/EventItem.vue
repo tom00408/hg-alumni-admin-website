@@ -4,15 +4,13 @@
     class="event-item"
     :class="{ 'event-item--featured': event.isFeatured }"
   >
-    <template #header>
-      <div class="event-item__date">
-        <div class="date-circle">
-          <span class="date-day">{{ formatDay(event.date) }}</span>
-          <span class="date-month">{{ formatMonth(event.date) }}</span>
-        </div>
-        <div class="date-year">{{ formatYear(event.date) }}</div>
+    <div class="event-item__date">
+      <div class="date-circle">
+        <span class="date-day">{{ formatDay(event.date) }}</span>
+        <span class="date-month">{{ formatMonth(event.date) }}</span>
       </div>
-    </template>
+      <div class="date-year">{{ formatYear(event.date) }}</div>
+    </div>
 
     <div class="event-item__content">
       <h3 class="event-item__title">{{ event.title }}</h3>
@@ -29,23 +27,21 @@
       </p>
     </div>
 
-    <template #footer>
-      <div class="event-item__actions">
-        <TomButton 
-          @click="$emit('view-details', event)"
-          title="Details ansehen"
-          icon="info"
-          variant="primary"
-        />
-      </div>
-    </template>
+    <div class="event-item__actions">
+      <TomButton 
+        @click="$emit('view-details', event)"
+        title="Details ansehen"
+        icon="info"
+        variant="primary"
+      />
+    </div>
   </HgCard>
 </template>
 
 <script setup lang="ts">
 import { Timestamp } from 'firebase/firestore'
 import HgCard from './HgCard.vue'
-import type { Event } from '../lib/types'
+import type { Event } from '../../lib/types'
 import TomButton from '../tomponents/TomButton.vue'
 
 interface Props {
