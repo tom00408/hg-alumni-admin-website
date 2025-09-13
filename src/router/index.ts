@@ -44,6 +44,14 @@ const router = createRouter({
       }
     },
     {
+      path: '/mitglieder',
+      name: 'mitglieder',
+      component: () => import('../pages/Mitglieder.vue'),
+      meta: {
+        title: 'Mitglieder'
+      }
+    },
+    {
       path: '/:pathMatch(.*)*',
       name: 'not-found',
       component: () => import('../pages/NotFound.vue'),

@@ -52,12 +52,23 @@ export const useMembershipStore = defineStore('membership', () => {
 
   const updateApplicationStatus = async (id: string, status: 'new' | 'in_progress' | 'approved' | 'rejected') => {
     try {
-      const { updateApplicationStatus: updateFirebaseStatus } = await import('../services/membership')
+      const { updateApplicationStatus: updateFirebaseStatus, createMemberFromApplication } = await import('../services/membership')
       await updateFirebaseStatus(id, status)
       
       const index = applications.value.findIndex(app => app.id === id)
       if (index !== -1) {
         applications.value[index].status = status
+        
+        // Wenn Antrag genehmigt wird, automatisch Mitglied erstellen
+        if (status === 'approved') {
+          try {
+            await createMemberFromApplication(applications.value[index])
+            console.log('Mitglied erfolgreich erstellt für Antrag:', id)
+          } catch (memberError) {
+            console.error('Fehler beim Erstellen des Mitglieds:', memberError)
+            // Antrag bleibt genehmigt, auch wenn Mitglied-Erstellung fehlschlägt
+          }
+        }
       }
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Fehler beim Aktualisieren des Antrags'

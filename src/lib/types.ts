@@ -65,6 +65,27 @@ export interface MembershipApplication {
   status?: 'new' | 'in_progress' | 'approved' | 'rejected'
 }
 
+export interface Member {
+  id?: string
+  salutation: string
+  firstName: string
+  lastName: string
+  address: string
+  postalCode: string
+  city: string
+  birthDate: string
+  occupation?: string
+  email: string
+  iban: string
+  bic: string
+  schoolFrom?: string
+  schoolTo?: string
+  memberSince: Timestamp
+  membershipNumber: string
+  status: 'active' | 'inactive' | 'suspended'
+  applicationId?: string // Referenz zum ursprünglichen Antrag
+}
+
 // Navigation Types
 export interface NavItem {
   id: string
