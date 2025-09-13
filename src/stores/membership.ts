@@ -10,8 +10,12 @@ export const useMembershipStore = defineStore('membership', () => {
   const error = ref<string | null>(null)
 
   // Getters
-  const pendingApplications = computed(() => {
-    return applications.value.filter(app => app.status === 'pending')
+  const newApplications = computed(() => {
+    return applications.value.filter(app => app.status === 'new')
+  })
+
+  const inProgressApplications = computed(() => {
+    return applications.value.filter(app => app.status === 'in_progress')
   })
 
   const approvedApplications = computed(() => {
@@ -46,7 +50,7 @@ export const useMembershipStore = defineStore('membership', () => {
     }
   }
 
-  const updateApplicationStatus = async (id: string, status: 'pending' | 'approved' | 'rejected') => {
+  const updateApplicationStatus = async (id: string, status: 'new' | 'in_progress' | 'approved' | 'rejected') => {
     try {
       const { updateApplicationStatus: updateFirebaseStatus } = await import('../services/membership')
       await updateFirebaseStatus(id, status)
@@ -54,6 +58,21 @@ export const useMembershipStore = defineStore('membership', () => {
       const index = applications.value.findIndex(app => app.id === id)
       if (index !== -1) {
         applications.value[index].status = status
+      }
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Fehler beim Aktualisieren des Antrags'
+      throw err
+    }
+  }
+
+  const updateApplication = async (id: string, data: Partial<MembershipApplication>) => {
+    try {
+      const { updateApplication: updateFirebaseApplication } = await import('../services/membership')
+      await updateFirebaseApplication(id, data)
+      
+      const index = applications.value.findIndex(app => app.id === id)
+      if (index !== -1) {
+        applications.value[index] = { ...applications.value[index], ...data }
       }
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Fehler beim Aktualisieren des Antrags'
@@ -87,7 +106,8 @@ export const useMembershipStore = defineStore('membership', () => {
     error,
     
     // Getters
-    pendingApplications,
+    newApplications,
+    inProgressApplications,
     approvedApplications,
     rejectedApplications,
     recentApplications,
@@ -95,6 +115,7 @@ export const useMembershipStore = defineStore('membership', () => {
     // Actions
     fetchApplications,
     updateApplicationStatus,
+    updateApplication,
     deleteApplication,
     getApplicationById,
     clearError

@@ -46,13 +46,23 @@ export interface GalleryImage {
 // Membership Application Types
 export interface MembershipApplication {
   id?: string
-  name: string
+  salutation: string
+  firstName: string
+  lastName: string
+  address: string
+  postalCode: string
+  city: string
+  birthDate: string
+  occupation?: string
   email: string
-  graduationYear?: number
-  relation?: string
-  message?: string
+  schoolFrom?: string
+  schoolTo?: string
+  iban: string
+  bic: string
+  placeDate: string
+  signature: string
   createdAt?: Timestamp
-  status?: 'pending' | 'approved' | 'rejected'
+  status?: 'new' | 'in_progress' | 'approved' | 'rejected'
 }
 
 // Navigation Types
