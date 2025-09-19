@@ -8,15 +8,15 @@ import {
   query,
   orderBy,
   where,
-  Timestamp 
+  Timestamp,
+  getDoc 
 } from 'firebase/firestore'
 import { db } from '../lib/firebase'
 import type { User, MembershipApplication, Member } from '../lib/types'
+import { httpsCallable, getFunctions } from 'firebase/functions'
+import { functions } from '../lib/firebase'
 
 const USERS_COLLECTION_NAME = 'users';
-// Legacy collection names (für Kompatibilität)
-const APPLICATION_COLLECTION_NAME = 'applications';
-const MEMBER_COLLECTION_NAME = 'members';
 
 
 
@@ -88,28 +88,77 @@ export const getUsersWithMembershipStatus = async (status?: 'pending' | 'active'
 }
 
 /**
+ * Angenommen E-Mail über Cloud Function senden
+ */
+export const sendAprovedNotification = async (email : string, firstName : string, lastName : string, membershipNumber : string, status : string): Promise<void> => {
+
+  const data = {
+    email: email,
+    firstName: firstName,
+    lastName: lastName,
+    membershipNumber: membershipNumber,
+    status: status
+  }
+	
+
+  const aufnahmeBestaetigung = httpsCallable(functions, "aufnahmeBestaetigung");
+
+  try {
+    const result = await aufnahmeBestaetigung({ aufnahmeEmailData: data });
+    //console.log("✅✅✅✅✅✅Mail gesendet:", result.data);
+  } catch (err) {
+    //console.error("❌❌❌❌❌❌Fehler beim Senden:", err);
+    throw err;
+  }
+
+}
+
+
+/**
  * User-Antragsstatus aktualisieren
  */
 export const updateUserApplicationStatus = async (uid: string, status: 'new' | 'in_progress' | 'approved' | 'rejected'): Promise<void> => {
   try {
-    const userDoc = doc(db, USERS_COLLECTION_NAME, uid)
+    // Zuerst die aktuellen User-Daten abrufen für E-Mail-Versand
+    const userDocRef = doc(db, USERS_COLLECTION_NAME, uid)
+    const userSnapshot = await getDoc(userDocRef)
+    
+    if (!userSnapshot.exists()) {
+      throw new Error('Benutzer nicht gefunden')
+    }
+    
+    const userData = userSnapshot.data() as User
+    
     const updateData: any = { 
       applicationStatus: status,
       updatedAt: Timestamp.now()
     }
     
+    let membershipNumber = ''
+    
     // Bei Genehmigung automatisch Mitgliedschaftsdaten setzen
     if (status === 'approved') {
       const year = new Date().getFullYear()
       const randomNum = Math.floor(Math.random() * 1000).toString().padStart(3, '0')
-      const membershipNumber = `ALU-${year}-${randomNum}`
+      membershipNumber = `ALU-${year}-${randomNum}`
       
       updateData.memberSince = Timestamp.now()
       updateData.membershipNumber = membershipNumber
       updateData.membershipStatus = 'active'
     }
     
-    await updateDoc(userDoc, updateData)
+    // Firestore-Update durchführen
+    await updateDoc(userDocRef, updateData)
+    
+    // E-Mail-Bestätigung senden (nur bei approved/rejected)
+    if (status === 'approved' || status === 'rejected') {
+      try {
+        await sendAprovedNotification(userData.email, userData.firstName, userData.lastName, membershipNumber, status)
+      } catch (emailError) {
+        console.warn('E-Mail-Versand fehlgeschlagen, aber Statusupdate war erfolgreich:', emailError)
+      }
+    }
+    
   } catch (error) {
     console.error('Error updating user application status:', error)
     throw new Error('Fehler beim Aktualisieren des Antragsstatus')
@@ -158,46 +207,6 @@ export const deleteUser = async (uid: string): Promise<void> => {
   } catch (error) {
     console.error('Error deleting user:', error)
     throw new Error('Fehler beim Löschen des Benutzers')
-  }
-}
-
-// ===== LEGACY FUNKTIONEN (für Kompatibilität) =====
-
-/**
- * Legacy: Alle Applications direkt aus der applications Collection laden
- */
-const getAllApplicationsLegacy = async (): Promise<MembershipApplication[]> => {
-  try {
-    const applicationsCollection = collection(db, APPLICATION_COLLECTION_NAME)
-    const q = query(applicationsCollection, orderBy('createdAt', 'desc'))
-    const querySnapshot = await getDocs(q)
-    
-    return querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    })) as MembershipApplication[]
-  } catch (error) {
-    console.error('Error fetching legacy applications:', error)
-    return [] // Fallback für leere Liste
-  }
-}
-
-/**
- * Legacy: Alle Members direkt aus der members Collection laden
- */
-const getAllMembersLegacy = async (): Promise<Member[]> => {
-  try {
-    const membersCollection = collection(db, MEMBER_COLLECTION_NAME)
-    const q = query(membersCollection, orderBy('memberSince', 'desc'))
-    const querySnapshot = await getDocs(q)
-    
-    return querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    })) as Member[]
-  } catch (error) {
-    console.error('Error fetching legacy members:', error)
-    return [] // Fallback für leere Liste
   }
 }
 

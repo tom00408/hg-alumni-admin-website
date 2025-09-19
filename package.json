@@ -14,7 +14,8 @@
     "deploy": "tsx scripts/deploy.ts",
     "check:types": "vue-tsc -b",
     "check:sizes": "tsx scripts/check-file-sizes.ts",
-    "check:css": "tsx scripts/check-css.ts"
+    "check:css": "tsx scripts/check-css.ts",
+    "test:approvalEmail": "tsx scripts/test-approvalEmail.ts"
   },
   "dependencies": {
     "dotenv": "^17.2.2",

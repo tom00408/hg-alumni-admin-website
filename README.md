@@ -119,6 +119,23 @@ npm install
 ## ⚙️ Konfiguration
 
 ### 1. Firebase-Konfiguration übernehmen
+```bash
+# src/lib/firebase.ts
+cd src/lib/
+cp firebase-example.ts firebase.ts
+```
+
+```js
+//Anpassen
+const firebaseConfig = {
+  apiKey: "apiKey",
+  authDomain: "authDomain",
+  projectId: "projectId",
+  storageBucket: "storageBucket",
+  messagingSenderId: "messagingSenderId",
+  appId: "appId"
+}
+````
 
 
 **Erforderliche Umgebungsvariablen:**
