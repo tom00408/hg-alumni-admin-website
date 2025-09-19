@@ -43,7 +43,51 @@ export interface GalleryImage {
   createdAt?: Timestamp
 }
 
-// Membership Application Types
+// User Types - Vereint Membership Application und Member Data
+export interface User {
+  // Firebase Auth ID als Document ID
+  uid: string
+  
+  // Persönliche Daten
+  salutation: string
+  firstName: string
+  lastName: string
+  displayName?: string
+  email: string
+  
+  // Adressdaten
+  address: string
+  postalCode: string
+  city: string
+  birthDate: string
+  occupation?: string
+  
+  // Schulzeit (optional)
+  schoolFrom?: string
+  schoolTo?: string
+  
+  // Bankdaten
+  iban: string
+  bic: string
+  
+  // Application-spezifische Felder
+  placeDate?: string  // Nur bei Antrag
+  signature?: string  // Nur bei Antrag
+  applicationCreatedAt?: Timestamp
+  applicationStatus: 'new' | 'in_progress' | 'approved' | 'rejected'
+  
+  // Member-spezifische Felder
+  memberSince?: Timestamp  // Wird gesetzt wenn approved
+  membershipNumber?: string  // Wird bei Approval generiert
+  membershipStatus: 'pending' | 'active' | 'inactive' | 'suspended'
+  
+  // System-Felder
+  role: 'member'  // Admin-Rolle entfernt - wird in separater Admin-Website verwaltet
+  createdAt: Timestamp
+  updatedAt?: Timestamp
+}
+
+// Legacy Types (für Kompatibilität, werden schrittweise entfernt)
 export interface MembershipApplication {
   id?: string
   salutation: string
@@ -115,7 +159,7 @@ export interface ValidationError {
 }
 
 // Authentication Types
-export interface User {
+export interface Admin {
   uid: string
   email: string
   isAdmin: boolean
@@ -124,7 +168,7 @@ export interface User {
 }
 
 export interface AuthState {
-  user: User | null
+  user: Admin | null
   isAuthenticated: boolean
   isLoading: boolean
   error: string | null
