@@ -1,11 +1,11 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { authService } from '../services/auth'
-import type { User, LoginCredentials, AuthState } from '../lib/types'
+import type { Admin, LoginCredentials, AuthState } from '../lib/types'
 
 export const useAuthStore = defineStore('auth', () => {
   // State
-  const user = ref<User | null>(null)
+  const user = ref<Admin | null>(null)
   const isLoading = ref(true)
   const error = ref<string | null>(null)
 
@@ -29,8 +29,8 @@ export const useAuthStore = defineStore('auth', () => {
       error.value = null
       isLoading.value = true
 
-      const authenticatedUser = await authService.signIn(credentials)
-      user.value = authenticatedUser
+      const authenticatedAdmin = await authService.signIn(credentials)
+      user.value = authenticatedAdmin
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Anmeldefehler'
       throw err
@@ -52,8 +52,8 @@ export const useAuthStore = defineStore('auth', () => {
 
   const initializeAuth = (): Promise<void> => {
     return new Promise((resolve) => {
-      const unsubscribe = authService.onAuthStateChanged((authenticatedUser) => {
-        user.value = authenticatedUser
+      const unsubscribe = authService.onAuthStateChanged((authenticatedAdmin) => {
+        user.value = authenticatedAdmin
         isLoading.value = false
         unsubscribe() // Nur beim ersten Mal auflösen
         resolve()
@@ -78,9 +78,9 @@ export const useAuthStore = defineStore('auth', () => {
 
   // Auth State Listener für kontinuierliche Updates
   const setupAuthListener = (): (() => void) => {
-    return authService.onAuthStateChanged((authenticatedUser) => {
-      user.value = authenticatedUser
-      if (!authenticatedUser) {
+    return authService.onAuthStateChanged((authenticatedAdmin) => {
+      user.value = authenticatedAdmin
+      if (!authenticatedAdmin) {
         error.value = null
       }
     })

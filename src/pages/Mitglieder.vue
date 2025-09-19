@@ -146,7 +146,6 @@
 							<th>BIC</th>
 							<th>Schulzeit von</th>
 							<th>Schulzeit bis</th>
-							<th>Aktionen</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -187,36 +186,20 @@
 							<td class="member-bic" data-label="BIC">{{ member.bic }}</td>
 							<td class="member-school-from" data-label="Schulzeit von">{{ formatDateGerman(member.schoolFrom || '') }}</td>
 							<td class="member-school-to" data-label="Schulzeit bis">{{ formatDateGerman(member.schoolTo || '') }}</td>
-							<td class="member-actions" data-label="">
-								<div class="action-buttons">
-									<TomButton
-										@click="viewMember(member)"
-										title="Anzeigen"
-										icon="eye"
-										variant="secondary"
-										size="small"
-									/>
-									<TomButton
-										@click="editMember(member)"
-										title="Bearbeiten"
-										icon="edit"
-										variant="primary"
-										size="small"
-									/>
-									<TomButton
-										@click="deleteMember(member)"
-										title="Löschen"
-										icon="delete"
-										variant="danger"
-										size="small"
-									/>
-								</div>
-							</td>
+							
 						</tr>
 					</tbody>
 				</table>
 			</div>
 		</div>
+
+		<!-- Export Modal -->
+		<ExportModal
+			:isOpen="showExportModal"
+			:selectedMembers="selectedMembersData"
+			@close="closeExportModal"
+			@export="handleExport"
+		/>
 	</div>
 </template>
 
@@ -225,6 +208,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useMembersStore } from '../stores/members';
 import type { Member } from '../lib/types';
 import TomButton from '../tomponents/TomButton.vue';
+import ExportModal from '../components/mitglieder/ExportModal.vue';
 
 // Store
 const membersStore = useMembersStore();
@@ -431,10 +415,41 @@ const editSelectedMembers = () => {
 	alert(`Bearbeitung von ${selectedMembers.value.length} Mitgliedern wird implementiert`);
 };
 
+const showExportModal = ref(false);
+
 const exportSelectedMembers = () => {
-	// TODO: Implement CSV export
-	console.log('Export selected members:', selectedMembersData.value);
-	alert(`Export von ${selectedMembers.value.length} Mitgliedern wird implementiert`);
+	if (selectedMembers.value.length === 0) {
+		alert('Keine Mitglieder ausgewählt');
+		return;
+	}
+	showExportModal.value = true;
+};
+
+const handleExport = async (config: any) => {
+	try {
+		const { exportMembersToCSV, validateExportConfig } = await import('../services/csvExport');
+		
+		// Validierung
+		const errors = validateExportConfig(config);
+		if (errors.length > 0) {
+			alert(`Export-Fehler:\n${errors.join('\n')}`);
+			return;
+		}
+		
+		// Export durchführen
+		exportMembersToCSV(config);
+		
+		// Erfolgsmeldung
+		console.log(`${config.members.length} Mitglieder erfolgreich exportiert`);
+		
+	} catch (error) {
+		console.error('Export-Fehler:', error);
+		alert(`Export fehlgeschlagen: ${error instanceof Error ? error.message : 'Unbekannter Fehler'}`);
+	}
+};
+
+const closeExportModal = () => {
+	showExportModal.value = false;
 };
 
 const deleteSelectedMembers = async () => {

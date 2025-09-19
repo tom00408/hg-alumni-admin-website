@@ -6,13 +6,13 @@ import {
 } from 'firebase/auth'
 import { doc, getDoc } from 'firebase/firestore'
 import { auth, db } from '../lib/firebase'
-import type { User, LoginCredentials } from '../lib/types'
+import type { Admin, LoginCredentials } from '../lib/types'
 
 class AuthService {
   /**
    * Benutzer anmelden
    */
-  async signIn(credentials: LoginCredentials): Promise<User> {
+  async signIn(credentials: LoginCredentials): Promise<Admin> {
     try {
       const userCredential = await signInWithEmailAndPassword(
         auth, 
@@ -20,14 +20,14 @@ class AuthService {
         credentials.password
       )
       
-      const user = await this.createUserFromFirebaseUser(userCredential.user)
+      const admin = await this.createAdminFromFirebaseUser(userCredential.user)
       
-      if (!user.isAdmin) {
+      if (!admin.isAdmin) {
         await this.signOut()
         throw new Error('Zugriff verweigert. Sie haben keine Administrator-Berechtigung.')
       }
       
-      return user
+      return admin
     } catch (error) {
       console.error('Anmeldefehler:', error)
       if (error instanceof Error) {
@@ -59,14 +59,14 @@ class AuthService {
   /**
    * Auth State Changes überwachen
    */
-  onAuthStateChanged(callback: (user: User | null) => void): () => void {
+  onAuthStateChanged(callback: (admin: Admin | null) => void): () => void {
     return onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         try {
-          const user = await this.createUserFromFirebaseUser(firebaseUser)
-          callback(user)
+          const admin = await this.createAdminFromFirebaseUser(firebaseUser)
+          callback(admin)
         } catch (error) {
-          console.error('Fehler beim Laden der Benutzerdaten:', error)
+          console.error('Fehler beim Laden der Admin-Daten:', error)
           callback(null)
         }
       } else {
@@ -76,9 +76,9 @@ class AuthService {
   }
 
   /**
-   * User-Objekt aus Firebase User erstellen
+   * Admin-Objekt aus Firebase User erstellen
    */
-  private async createUserFromFirebaseUser(firebaseUser: FirebaseUser): Promise<User> {
+  private async createAdminFromFirebaseUser(firebaseUser: FirebaseUser): Promise<Admin> {
     try {
       // Admin-Status aus Firestore abrufen
       const userDoc = await getDoc(doc(db, 'admins', firebaseUser.uid))
